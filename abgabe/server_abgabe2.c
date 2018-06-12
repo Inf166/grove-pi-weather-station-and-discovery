@@ -13,7 +13,6 @@
 #include <errno.h>
 
 //#include "../grovepi.c" //Muss für Raspberry-Funktionen aktiv sein
-//TODO Raspberry Funktionen - Logik der Schleifen (Doppelte Ausgabe) haha
 
 #define INPUT 0
 #define OUTPUT 1
@@ -135,49 +134,25 @@ int main(){
             send (fileDesc, buf, strlen(buf), 0);
           	int running=1;
             while(running) { //running als Abbruchsbedingung für die Kommunikation - Wird running geändert ist die Server-Client-Kommunikation abgeschlossen
+
                 char client_cmd[256];
                 char *args[2];
+
                 recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
                 printf("Client: %s\n", client_cmd);
 
+                char sensor_werte[256]="Sensorwerte von 192.168.2.28";
+                strcat(sensor_werte,"Temperatur: %f c \n",  getTemp(8));
+                strcat(sensor_werte,"Lautstaerke: %i db \n", getSound(7));
+                strcat(sensor_werte,"Luftfeuchtigkeit: %f \n",  getLuftfeuchtigkeit(8));
+                strcat(sensor_werte,"Licht: %i \n",  getLicht(5));
+                
                 //Nachricht bearbeiten
-                strtoken(client_cmd,args,2); // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
-                if (strcmp(args[0], "GET")==0){ // Das erste wort wird geprüft. Ist es ein GET wird auf das 2. geschaut
-                  if (strcmp(args[1], "TEMPERATURE") == 0) { // Ist das 2. Wort das gesuchte
-                      char message [40]={0};
-                      float t=getTemp(8); //Fordere den gesuchten Wert vom Raspberry an (Ausgelagerte Funktionen)
-                      sprintf(message,"Temperatur: %.02f C\n",t); //Gibt Wert aus und speichert in message
-
-                      send (fileDesc, message, strlen(message), 0); //schickt message an den Client
-                  } else if (strcmp(args[1], "HUMIDITY") == 0) {
-                      char message [40]={0};
-                      float t=getLuftfeuchtigkeit(8);
-                      sprintf(message,"Luftfeuchtigkeit: %.02f Prozent \n",t);
-
-                      send (fileDesc, message, strlen(message), 0);
-                  } else if (strcmp(args[1], "LIGHT") == 0) {
-                      char message [40]={0};
-                      int t=getLicht(4);
-                      sprintf(message,"Resistance: %d\n",t);
-
-                      send (fileDesc, message, strlen(message), 0);
-                  } else if (strcmp(args[1], "SOUND") == 0) {
-                      char message[40] = {0};
-                      int t = getSound(3);
-                      sprintf(message, "Sound: %d\n", t);
-
-                      send(fileDesc, message, strlen(message), 0);
-                  }
-
-                } else if (strcmp(args[0], "END") == 0) { //Befehl um die Verbindung zu trennen
-                    char message [40]={0};
-                    running=0; //Abbruchbedingung der whileschleife erfüllt
-                    sprintf(message,"Wird beendet.\n");
-                    send (fileDesc, message, strlen(message), 0);
-                } else if (strcmp(args[0], "PEERS") == 0) {     //Liste aller verbundenen Clients
+                strtoken(client_cmd,args,3); // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
+                if (strcmp(args[0], "PEERS") == 0) {     //Liste aller verbundenen Clients // Kann sein das man zwei Leerzeichen hinten anfügen muss
                     //TODO Tabellen ausgabe
                 } else if (strcmp(args[0], "CONNECT") == 0) {     //Verbinde mit client via IP und PORT
-                //TODO Verbinde mit Client
+                //TODO Verbinde mit Client https://spin.atomicobject.com/2017/03/08/message-queue-for-c/
                     if(args[1]!=null && args[2] != null){
                     //Wir machen einen Socket:
                     int neuerclient; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
@@ -191,19 +166,19 @@ int main(){
 
                     //     Typ              Cast zur Adresse              Länge der Adresse
                     int conect_status = connect(neuerclient, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
-                    //Auffangen von Connection error
-                    if(conect_status == -1){
-                        printf("Verbindung fehlgeschlagen...\n\n");
-                    }
-                    //Empfangen von Daten
-                    char server_antwort[256];
-                    recv(neuerclient, &server_antwort, sizeof(server_antwort), 0);
-
-                    //Ausgabe
-                    printf("Dateien empfangen: %s\n", server_antwort);
-
-                    //Verbindung schließen
-                    close(neuerclient);
+                    // //Auffangen von Connection error
+                    // if(conect_status == -1){
+                    //     printf("Verbindung fehlgeschlagen...\n\n");
+                    // }
+                    // //Empfangen von Daten
+                    // char server_antwort[256];
+                    // recv(neuerclient, &server_antwort, sizeof(server_antwort), 0);
+                    //
+                    // //Ausgabe
+                    // printf("Dateien empfangen: %s\n", server_antwort);
+                    //
+                    // //Verbindung schließen
+                    // close(neuerclient);
                     }
                 } else { //Ist das 1. Wort unbekant gibt es einne Fehlerausgabe
                     char message [40]={0};
