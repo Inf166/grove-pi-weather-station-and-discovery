@@ -303,11 +303,21 @@
         printf("Dateien empfangen: %s\n", server_antwort);
     }
 
+    void test(){
+        while(1){
+            setLCDTextmitRGB("Initialisiere...", LOWPRIO);
+            pi_sleep(1000);
+            setLCDTextmitRGB("Initialisiere..", LOWPRIO);
+            pi_sleep(1000);
+            setLCDTextmitRGB("Initialisiere.", LOWPRIO);
+            pi_sleep(1000);
+        }
+    }
+
     int main(){
       // Raspberry Sensoren working
         init();
         connectLCD();
-        setLCDTextmitRGB("Initialisiere...", LOWPRIO);
         printf("Erwarte Befehl:\n");
         int running = 1;
         while(running){
