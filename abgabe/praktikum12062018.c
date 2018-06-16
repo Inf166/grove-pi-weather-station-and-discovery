@@ -12,7 +12,8 @@
 #include <netinet/in.h>
 #include <errno.h>
 
-//#include "../grovepi.c" //Muss für Raspberry-Funktionen aktiv sein
+#include "../grovepi.h" //Muss für Raspberry-Funktionen aktiv sein
+//TODO Raspberry Funktionen - Logik der Schleifen (Doppelte Ausgabe) haha
 
 #define INPUT 0
 #define OUTPUT 1
@@ -107,6 +108,28 @@ int main(){
         struct sockaddr_in client;
         socklen_t client_len=sizeof(struct sockaddr_in);
         puts("Warte immernoch...\n");
+        printf("neue testausgabe");
+//TODO TEST für sensoren und chararray append
+//    char sensor_werte2[256]="Sensorwerte von 192.168.2.28\n";
+//    strncat(sensor_werte2,"Temperatur: %f c \n",  getTemp(8));
+//    strncat(sensor_werte2,"Lautstaerke: %i db \n", getSound(7));
+//    strncat(sensor_werte2,"Luftfeuchtigkeit: %f \n",  getLuftfeuchtigkeit(8));
+//    strncat(sensor_werte2,"Licht: %i \n",  getLicht(5));
+//    printf(sensor_werte2);
+//    printf("%s",sensor_werte2);
+//    printf("%d",getTemp(8));
+//    printf("%d",getSound(7));
+//    printf("%d",getLuftfeuchtigkeit(8));
+//    printf("%d",getLicht(5));
+
+    connectLCD();
+    setText("Test");
+
+
+
+
+
+
     int pid, fileDesc;
     static int counter=0;
     while (1) {
@@ -134,52 +157,24 @@ int main(){
             send (fileDesc, buf, strlen(buf), 0);
           	int running=1;
             while(running) { //running als Abbruchsbedingung für die Kommunikation - Wird running geändert ist die Server-Client-Kommunikation abgeschlossen
-
                 char client_cmd[256];
                 char *args[2];
 
                 recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
                 printf("Client: %s\n", client_cmd);
 
-                char sensor_werte[256]="Sensorwerte von 192.168.2.28";
-                strcat(sensor_werte,"Temperatur: %f c \n",  getTemp(8));
-                strcat(sensor_werte,"Lautstaerke: %i db \n", getSound(7));
-                strcat(sensor_werte,"Luftfeuchtigkeit: %f \n",  getLuftfeuchtigkeit(8));
-                strcat(sensor_werte,"Licht: %i \n",  getLicht(5));
-                
+                char sensor_werte[256]="Sensorwerte von 192.168.2.28\n";
+                strncat(sensor_werte,"Temperatur: %f c \n",  getTemp(8));
+                strncat(sensor_werte,"Lautstaerke: %i db \n", getSound(7));
+                strncat(sensor_werte,"Luftfeuchtigkeit: %f \n",  getLuftfeuchtigkeit(8));
+                strncat(sensor_werte,"Licht: %i \n",  getLicht(5));
+                printf(sensor_werte);
                 //Nachricht bearbeiten
                 strtoken(client_cmd,args,3); // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
-                if (strcmp(args[0], "PEERS") == 0) {     //Liste aller verbundenen Clients // Kann sein das man zwei Leerzeichen hinten anfügen muss
+                if (strcmp(args[0], "PEERS") == 0) {     //Liste aller verbundenen Clients
                     //TODO Tabellen ausgabe
                 } else if (strcmp(args[0], "CONNECT") == 0) {     //Verbinde mit client via IP und PORT
-                //TODO Verbinde mit Client https://spin.atomicobject.com/2017/03/08/message-queue-for-c/
-                    if(args[1]!=null && args[2] != null){
-                    //Wir machen einen Socket:
-                    int neuerclient; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
-                        neuerclient = socket(AF_INET, SOCK_STREAM, 0);
-
-                    //Genauere Adresse fuer den Socket
-                    struct sockad_in serv_ad;
-                    serv_ad.sin_family = AF_INET;           //Adress-Familie
-                    serv_ad.sin_port = htons(args[2]);         //Portnummer
-                    serv_ad.sin_addr.s_addr = args[1];   //Vlt noch ändern in IP Adresse
-
-                    //     Typ              Cast zur Adresse              Länge der Adresse
-                    int conect_status = connect(neuerclient, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
-                    // //Auffangen von Connection error
-                    // if(conect_status == -1){
-                    //     printf("Verbindung fehlgeschlagen...\n\n");
-                    // }
-                    // //Empfangen von Daten
-                    // char server_antwort[256];
-                    // recv(neuerclient, &server_antwort, sizeof(server_antwort), 0);
-                    //
-                    // //Ausgabe
-                    // printf("Dateien empfangen: %s\n", server_antwort);
-                    //
-                    // //Verbindung schließen
-                    // close(neuerclient);
-                    }
+                    //TODO Verbinde mit Client
                 } else { //Ist das 1. Wort unbekant gibt es einne Fehlerausgabe
                     char message [40]={0};
                     sprintf(message,"Fehlerhafte Eingabe.\n");
