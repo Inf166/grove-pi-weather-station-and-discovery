@@ -7,7 +7,7 @@
 
 int main(){
 	
-	char kleinerAls = 60;
+	/*char kleinerAls = 60;
     char groesserAls = 62;
     
     char punkt = 46 ;
@@ -27,7 +27,7 @@ int main(){
     
     char Max[255] = "Max";
     char Min[255] = "Min: ";
-    char Current[255] = "Derzeitig: ";
+    char Current[255] = "Derzeitig: ";*/
     
     //<255.255.255.255:1234> [ Sensor: Wert ]
     
@@ -41,13 +41,15 @@ int main(){
     int getFeuchtigkeitMax = 70;
     int getFeuchtigkeitMin = 40;
     
-    int GetGerausch = 50;
-    int GetGerauschMax = 80;
-    int GetGerauschMin =0;
+    int getGerausch = 50;
+    int getGerauschMax = 80;
+    int getGerauschMin =0;
     
     int getBewegung = 1;
     
-    int getWasserkontakt = 1;
+    int getWasserkontakt = 5;
+    int getWasserkontaktMax = 9;
+    int getWasserkontaktMin = 1;
     
     char IPColision[255] = "255.255.255.255:1234";
     char IPTempre[255] = "255.255.255.255:1234";
@@ -66,15 +68,18 @@ int main(){
     fp = fopen("Sensordaten.txt", "w");
 
     if(fp == NULL) {
-    	printf("Datei konnte nicht geoeffnet werden.\n");
+    	printf(" Datei? Was fuer 'ne Datei?'.\n");
     }else {
     	//<255.255.255.255:1234> [ Sensor: min: xx; derzeitig: xx, max: xx ]
 
+		fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", IPColision, getColision );
+		fprintf(fp, "<%s> [ TEMPERATUR: min: %d, derzeitig: %d, max: %d ]\n", IPTempre, getTempreMin, getTempre, getTempreMax );
+		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %d, derzeitig: %d, max: %d ]\n", IPFeuchtigkeit, getFeuchtigkeitMin, getFeuchtigkeit, getFeuchtigkeitMax );
+		fprintf(fp, "<%s> [ GERAEUSCH: min: %d, derzeitig: %d, max: %d ]\n", IPGerausch, getGerauschMin, getGerausch, getGerauschMax );
+		fprintf(fp, "<%s> [ BEWEGUNG: derzeitig: %d ]\n", IPBewegung, getBewegung );
+		fprintf(fp, "<%s> [ WASSER: min: %d, derzeitig: %d, max: %d ]\n", IPWasserkontakt, getWasserkontaktMin, getWasserkontakt, getWasserkontaktMax );
 	
-		fprintf(fp, "<%s> [ Temperatur: min: %d, derzeitig: %d, max: %d ]\n", IPTempre, getTempreMin, getTempre, getTempreMax );
-		fprintf(fp, "<%s> [ Temperatur: min: %d, derzeitig: %d, max: %d ]\n", IPTempre, getTempreMin, getTempre, getTempreMax );
-	
-	printf("Zahlen wurden geschrieben.\n");
+	printf("*DING* Tabelle is' feddich.\n");
 	fclose(fp);
     	
     	

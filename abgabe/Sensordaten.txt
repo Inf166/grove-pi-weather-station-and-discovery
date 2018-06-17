@@ -1,2 +1,6 @@
-<255.255.255.255:1234> [ Temperatur: min: 15, derzeitig: 20, max: 25 ]
-<255.255.255.255:1234> [ Temperatur: min: 15, derzeitig: 20, max: 25 ]
+<255.255.255.255:1234> [ COLLISION: derzeitig: 1 ]
+<255.255.255.255:1234> [ TEMPERATUR: min: 15, derzeitig: 20, max: 25 ]
+<255.255.255.255:1234> [ FEUCHTIGKEIT: min: 40, derzeitig: 60, max: 70 ]
+<255.255.255.255:1234> [ GERAEUSCH: min: 0, derzeitig: 50, max: 80 ]
+<255.255.255.255:1234> [ BEWEGUNG: derzeitig: 1 ]
+<255.255.255.255:1234> [ WASSER: min: 1, derzeitig: 5, max: 9 ]
