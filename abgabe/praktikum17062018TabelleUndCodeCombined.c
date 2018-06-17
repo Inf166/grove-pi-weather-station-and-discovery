@@ -335,12 +335,8 @@
       int getWasserkontaktMax = 9;
       int getWasserkontaktMin = 1;
 
-      char IPColision[255] = "255.255.255.255:1234";
-      char IPTempre[255] = "255.255.255.255:1234";
-  		char IPFeuchtigkeit[255] = "255.255.255.255:1234";
-  		char IPGerausch[255] = "255.255.255.255:1234";
-      char IPBewegung[255] = "255.255.255.255:1234";
-      char IPWasserkontakt[255] = "255.255.255.255:1234";
+      char ipclient[255] = "255.255.255.255";
+		//char ipclient[255] = ip;
 
       
      /* time_t now;
@@ -354,14 +350,14 @@
       if(fp == NULL) {
       	printf(" Datei? Was fuer 'ne Datei?'.\n");
       }else {
-      	//<255.255.255.255:1234> [ Sensor: min: xx; derzeitig: xx, max: xx ]
+      	//<255.255.255.255> [ Sensor: min: xx; derzeitig: xx, max: xx ]
 
-  		fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", IPColision, getColision );
-  		fprintf(fp, "<%s> [ TEMPERATUR: min: %d, derzeitig: %d, max: %d ]\n", IPTempre, getTempreMin, getTempre, getTempreMax );
-  		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %d, derzeitig: %d, max: %d ]\n", IPFeuchtigkeit, getFeuchtigkeitMin, getFeuchtigkeit, getFeuchtigkeitMax );
-  		fprintf(fp, "<%s> [ GERAEUSCH: min: %d, derzeitig: %d, max: %d ]\n", IPGerausch, getGerauschMin, getGerausch, getGerauschMax );
-  		fprintf(fp, "<%s> [ BEWEGUNG: derzeitig: %d ]\n", IPBewegung, getBewegung );
-  		fprintf(fp, "<%s> [ WASSER: min: %d, derzeitig: %d, max: %d ]\n", IPWasserkontakt, getWasserkontaktMin, getWasserkontakt, getWasserkontaktMax );
+  		fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", ipclient, getColision );
+  		fprintf(fp, "<%s> [ TEMPERATUR: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getTempreMin, getTempre, getTempreMax );
+  		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getFeuchtigkeitMin, getFeuchtigkeit, getFeuchtigkeitMax );
+  		fprintf(fp, "<%s> [ GERAEUSCH: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getGerauschMin, getGerausch, getGerauschMax );
+  		fprintf(fp, "<%s> [ BEWEGUNG: derzeitig: %d ]\n", ipclient, getBewegung );
+  		fprintf(fp, "<%s> [ WASSER: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getWasserkontaktMin, getWasserkontakt, getWasserkontaktMax );
 
   	printf("*DING* Tabelle is' feddich.\n");
   	fclose(fp);
