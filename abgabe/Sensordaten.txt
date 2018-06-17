@@ -1,0 +1,2 @@
+<255.255.255.255:1234> [ Temperatur: min: 15, derzeitig: 20, max: 25 ]
+<255.255.255.255:1234> [ Temperatur: min: 15, derzeitig: 20, max: 25 ]
