@@ -236,7 +236,7 @@
                         sscanf(args[2], "%d", &port);
                         serv_ad.sin_port = htons(port);//Portnummer
                         printf("Portnummer %d\n", port);//Portnummer
-                        serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
+                        serv_ad.sin_addr.s_addr = inet_ntoa(args[1]);   //Vlt noch ändern in IP Adresse
                         printf("IP Adresse %s\n", args[1]);
                         printf("Uebernehme eingegebene IP und Port Nummern\n");
                         //     Typ              Cast zur Adresse              Länge der Adresse
