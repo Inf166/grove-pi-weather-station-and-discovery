@@ -18,6 +18,7 @@
 #define INPUT 0
 #define OUTPUT 1
 
+
 //Ports predfined
 #define LCDPORT 5
 #define MOTIONPORT 6
@@ -331,7 +332,7 @@
     
     float getTempreMax(float tempre, float tempreMax ) {
     	
-    	if (tempreMax == NULL || tempre > tempreMax) {
+    	if (tempreMax == 0 || tempre > tempreMax) {
     		tempreMax = tempre;
 		}
 		return tempreMax;
@@ -339,7 +340,7 @@
 	
 	float getTempreMin(float tempre, float tempreMin) {
 
-    	if (tempreMin == NULL || tempre < tempreMin) {
+    	if (tempreMin == 0 || tempre < tempreMin) {
     		tempreMin = tempre;
 		}
 		return tempreMin;
@@ -348,7 +349,7 @@
 
 	float getFeuchtigkeitMax(float feuchtigkeit, float feuchtigkeitsMax) {
 
-    	if (feuchtigkeitMax == NULL || feuchtigkeit > feuchtigkeitMax) {
+    	if (feuchtigkeitMax == 0 || feuchtigkeit > feuchtigkeitMax) {
     		feuchtigkeitMax = feuchtigkeit;
 		}
 		return feuchtigkeitMax;
@@ -358,7 +359,7 @@
 	float getFeuchtigkeitMin(float feuchtigkeit, float feuchtigkeitsMin) {
     	
 
-    	if (feuchtigkeitMin == NULL || feuchtigkeit < feuchtigkeitMin) {
+    	if (feuchtigkeitMin == 0 || feuchtigkeit < feuchtigkeitMin) {
     		feuchtigkeitMin = feuchtigkeit;
 		}
 		return feuchtigkeitMin;
@@ -367,7 +368,7 @@
 
 	int getGerauschMax(int gerausch, int gerauschMax) {
 
-    	if (gerauschMax == NULL || gerausch > gerauschMax) {
+    	if (gerauschMax == 0 || gerausch > gerauschMax) {
     		gerauschMax = gerausch;
 		}
 		return gerauschMax;
@@ -375,9 +376,9 @@
 
 
 	
-	int getGerauschMin(int gerausch int gerauschMin) {
+	int getGerauschMin(int gerausch, int gerauschMin) {
 
-    	if (gerauschMin == NULL || gerausch < gerauschMin) {
+    	if (gerauschMin == 0 || gerausch < gerauschMin) {
     		gerauschMin = gerausch;
 		}
 		return gerauschMin;
@@ -386,7 +387,7 @@
 	int getWasserkontaktMax(int wasserkontakt, int wasserkontaktMax) {
     	
 
-    	if (wasserkontaktMax == NULL || wasserkontakt > wasserkontaktMax) {
+    	if (wasserkontaktMax == 0 || wasserkontakt > wasserkontaktMax) {
     		wasserkontaktMax = wasserkontakt;
 		}
 		return wasserkontaktMax;
@@ -396,13 +397,13 @@
 	int getWasserkontaktMin(int wasserkontakt, int wasserkontaktMin) {
     	
 
-    	if (wasserkontaktMin == NULL || wasserkontakt < wasserkontaktMin) {
+    	if (wasserkontaktMin == 0 || wasserkontakt < wasserkontaktMin) {
     		wasserkontaktMin = wasserkontakt;
 		}
 		return wasserkontaktMin;
 	}
 
-    void writeLog(char *ip, char *cmd){
+    void writeLog(char cmd){
 
 
       char ipclient[255] = "255.255.255.255";
@@ -455,13 +456,13 @@
       }else {
       	//<255.255.255.255> [ Sensor: min: xx; derzeitig: xx, max: xx ]
 
-  		fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", ipclient, getColision(COLISIONPORT) );
-  		fprintf(fp, "<%s> [ TEMPERATUR: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getTempreMin(getTempre(TEMPHUMPORT)), getTempre(TEMPHUMPORT), getTempreMax(getTempre(TEMPHUMPORT)) );
+  		/*fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", ipclient, getColision(COLISIONPORT) );
+  		fprintf(fp, "<%s> [ TEMPERATUR: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getTempreMin(getTempre(TEMPHUMPORT), tempreMin), getTempre(TEMPHUMPORT), getTempreMax(getTempre(TEMPHUMPORT,tempreMax)) );
   		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getFeuchtigkeitMin(getFeuchtigkeit(TEMPHUMPORT)), getFeuchtigkeit(TEMPHUMPORT), getFeuchtigkeitMax(getFeuchtigkeit(TEMPHUMPORT)) );
   		fprintf(fp, "<%s> [ GERAEUSCH: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getGerauschMin(getGerausch(SOUNDPORT)), getGerausch(SOUNDPORT), getGerauschMax(getGerausch(SOUNDPORT)) );
   		fprintf(fp, "<%s> [ BEWEGUNG: derzeitig: %d ]\n", ipclient, getBewegung(MOTIONPORT) );
   		fprintf(fp, "<%s> [ WASSER: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getWasserkontaktMin(getWasserkontakt(MOISTUREPORT)), getWasserkontakt(MOISTUREPORT), getWasserkontaktMax(getWasserkontakt(MOISTUREPORT)) );
-
+		*/
   	printf("Die Tabelle wurde gespeichert.\n");
   	fclose(fp);
 
