@@ -1,19 +1,19 @@
 #include <stdio.h>
 
 
-	int tempre = 20;
+	int tempre;
     int tempreMax;
     int tempreMin;
 
-    int feuchtigkeit = 60;
+    int feuchtigkeit;
     int feuchtigkeitMax;
     int feuchtigkeitMin;
 
-    int gerausch = 50;
+    int gerausch;
     int gerauschMax;
     int gerauschMin;
 
-    int wasserkontakt = 5;
+    int wasserkontakt;
     int wasserkontaktMax;
     int wasserkontaktMin;
     
@@ -28,7 +28,7 @@
 	
 	int getTempreMin(int tempre) {
     	
-    	if (tempreMin == NULL || tempre < tempreMax) {
+    	if (tempreMin == NULL || tempre < tempreMin) {
     		tempreMin = tempre;
 		}
 		return tempreMin;
@@ -86,10 +86,12 @@
 int main() {
 	
 	while (1) {
+		printf("Current: %d\n", tempre);
 		printf("Temperatur: ");
 		scanf("%d", &tempre);
 		printf("Max: %d\n", getTempreMax(tempre));
 		printf("Min: %d\n", getTempreMin(tempre));
+	
 	}
 
 
