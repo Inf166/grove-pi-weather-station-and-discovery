@@ -261,8 +261,8 @@
               }
             }
             c = 0;
-            if(strcmp(cmd[i], klammerauf)){
-              while(cmd[i]!=doppelpoint){
+            if(strcmp(cmd[i], klammerauf[0])){
+              while(cmd[i]!=doppelpoint[0]){
                 sensorname[c] = cmd[i];
                 i++;
                 c++;

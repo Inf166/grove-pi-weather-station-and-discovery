@@ -5,7 +5,7 @@
       <paths name="Raspberry">
         <serverdata>
           <mappings>
-            <mapping deploy="/PraktikumNeu/team36" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/Praktikum/team36" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

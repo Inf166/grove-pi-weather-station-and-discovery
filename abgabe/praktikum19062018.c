@@ -248,28 +248,28 @@
         char klammerzu[] = "]";
         char doppelpoint[] = ":";
         while(i < size){
-            if (strcmp(cmd[i], "<") == 0) {
+            if (strcmp(*cmd[i], "<") == 0) {
               int run = 1;
               int c = 0;
               while(run){
                 ipclient[c] = cmd[i];
                 c++;
                 i++;
-                if(strcmp(cmd[i], ">")){
+                if(strcmp(*cmd[i], ">")){
                   run = 0;
                 }
               }
             }
             c = 0;
-            if(strcmp(cmd[i], klammerauf)){
-              while(cmd[i]!=doppelpoint){
+            if(strcmp(*cmd[i], klammerauf)){
+              while(*cmd[i]!=doppelpoint){
                 sensorname[c] = cmd[i];
                 i++;
                 c++;
               }
               i++;
               c=0;
-              while(cmd[i]!=klammerzu){
+              while(*cmd[i]!=klammerzu){
                 sensorwert[c] = cmd[i];
               }
             }
