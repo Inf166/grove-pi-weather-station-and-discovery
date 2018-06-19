@@ -31,11 +31,11 @@
 #define MIDDLEPRIO 2
 #define LOWPRIO 3
 
-    int tempreMax;
-    int tempreMin;
+    float tempreMax;
+    float tempreMin;
 
-    int feuchtigkeitMax;
-    int feuchtigkeitMin;
+    float feuchtigkeitMax;
+    float feuchtigkeitMin;
 
     int gerauschMax;
     int gerauschMin;
@@ -328,7 +328,7 @@
     
     //es folgen die Funktionen um die Maximal- und Minimalwerte der jeweiligen Sensoren zu ermitteln
     
-    float getTempreMax(float tempre) {
+    float getTempreMax(float tempre, float tempreMax ) {
     	
     	if (tempreMax == NULL || tempre > tempreMax) {
     		tempreMax = tempre;
@@ -336,7 +336,7 @@
 		return tempreMax;
 	}
 	
-	float getTempreMin(float tempre) {
+	float getTempreMin(float tempre, float tempreMin) {
     	
     	if (tempreMin == NULL || tempre < tempreMin) {
     		tempreMin = tempre;
@@ -344,7 +344,7 @@
 		return tempreMin;
 	}
 	
-	float getFeuchtigkeitMax(float feuchtigkeit) {
+	float getFeuchtigkeitMax(float feuchtigkeit, float feuchtigkeitsMax) {
     	
     	if (feuchtigkeitMax == NULL || feuchtigkeit > feuchtigkeitMax) {
     		feuchtigkeitMax = feuchtigkeit;
@@ -352,7 +352,7 @@
 		return feuchtigkeitMax;
 	}
 	
-	float getFeuchtigkeitMin(float feuchtigkeit) {
+	float getFeuchtigkeitMin(float feuchtigkeit, float feuchtigkeitsMin) {
     	
     	if (feuchtigkeitMin == NULL || feuchtigkeit < feuchtigkeitMin) {
     		feuchtigkeitMin = feuchtigkeit;
@@ -360,7 +360,7 @@
 		return feuchtigkeitMin;
 	}
 	
-	int getGerauschMax(int gerausch) {
+	int getGerauschMax(int gerausch, int gerauschMax) {
     	
     	if (gerauschMax == NULL || gerausch > gerauschMax) {
     		gerauschMax = gerausch;
@@ -368,7 +368,7 @@
 		return gerauschMax;
 	}
 	
-	int getGerauschMin(int gerausch) {
+	int getGerauschMin(int gerausch int gerauschMin) {
     	
     	if (gerauschMin == NULL || gerausch < gerauschMin) {
     		gerauschMin = gerausch;
@@ -376,7 +376,7 @@
 		return gerauschMin;
 	}
 	
-	int getWasserkontaktMax(int wasserkontakt) {
+	int getWasserkontaktMax(int wasserkontakt, int wasserkontaktMax) {
     	
     	if (wasserkontaktMax == NULL || wasserkontakt > wasserkontaktMax) {
     		wasserkontaktMax = wasserkontakt;
@@ -384,7 +384,7 @@
 		return wasserkontaktMax;
 	}
 	
-	int getWasserkontaktMin(int wasserkontakt) {
+	int getWasserkontaktMin(int wasserkontakt, int wasserkontaktMin) {
     	
     	if (wasserkontaktMin == NULL || wasserkontakt < wasserkontaktMin) {
     		wasserkontaktMin = wasserkontakt;
