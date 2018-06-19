@@ -369,7 +369,7 @@
 		return gerauschMax;
 	}
 
-	int getGerauschMin(int gerausch int gerauschMin) {
+	int getGerauschMin(int gerausch, int gerauschMin) {
 
     	if (gerauschMin == 0 || gerausch < gerauschMin) {
     		gerauschMin = gerausch;
@@ -396,7 +396,7 @@
 	}
 
 //How to write a neat Log 101
-      void writeLog(char cmd){
+      void writeLog(char cmd[]){
 
 
         char ipclient[255] = "255.255.255.255";
