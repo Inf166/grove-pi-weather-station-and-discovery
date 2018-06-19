@@ -337,11 +337,19 @@
 
       char ipclient[255] = "255.255.255.255";
 		//char ipclient[255] = ip;
+      char buff[255];
+      int size = sizeof(cmd);
+      int i = 0;                                     // Teilt diese an der Leerzeichen und speichert sie in den bei "**token" angegebenen Speicherort (Array)
+      char klammerauf[] = "[";
+      char klammerzu[] = "]";
+      char doppelpoint[] = ":";
+      while(i < size){
+          if (strcmp(cmd[i], klammerauf) == 0) {
+            
+          }
 
-
-     /* time_t now;
-  	  time(&now);
-  	  printf("Sekunden seit 01.01.1970 00:00:00 Uhr: %d\n", now);*/
+      i++;
+      }
 
       FILE *fp;
 

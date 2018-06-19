@@ -310,7 +310,7 @@
         //Empfangen von Daten
         char server_antwort[256];
         recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
+        writeLog(server_antwort); //schreibt das log
         //Ausgabe
         printf("Dateien empfangen: %s\n", server_antwort);
     }
@@ -325,67 +325,67 @@
             pi_sleep(1000);
         }
     }
-    
+
     //es folgen die Funktionen um die Maximal- und Minimalwerte der jeweiligen Sensoren zu ermitteln
-    
+
     float getTempreMax(float tempre) {
-    	
+
     	if (tempreMax == NULL || tempre > tempreMax) {
     		tempreMax = tempre;
 		}
 		return tempreMax;
 	}
-	
+
 	float getTempreMin(float tempre) {
-    	
+
     	if (tempreMin == NULL || tempre < tempreMin) {
     		tempreMin = tempre;
 		}
 		return tempreMin;
 	}
-	
+
 	float getFeuchtigkeitMax(float feuchtigkeit) {
-    	
+
     	if (feuchtigkeitMax == NULL || feuchtigkeit > feuchtigkeitMax) {
     		feuchtigkeitMax = feuchtigkeit;
 		}
 		return feuchtigkeitMax;
 	}
-	
+
 	float getFeuchtigkeitMin(float feuchtigkeit) {
-    	
+
     	if (feuchtigkeitMin == NULL || feuchtigkeit < feuchtigkeitMin) {
     		feuchtigkeitMin = feuchtigkeit;
 		}
 		return feuchtigkeitMin;
 	}
-	
+
 	int getGerauschMax(int gerausch) {
-    	
+
     	if (gerauschMax == NULL || gerausch > gerauschMax) {
     		gerauschMax = gerausch;
 		}
 		return gerauschMax;
 	}
-	
+
 	int getGerauschMin(int gerausch) {
-    	
+
     	if (gerauschMin == NULL || gerausch < gerauschMin) {
     		gerauschMin = gerausch;
 		}
 		return gerauschMin;
 	}
-	
+
 	int getWasserkontaktMax(int wasserkontakt) {
-    	
+
     	if (wasserkontaktMax == NULL || wasserkontakt > wasserkontaktMax) {
     		wasserkontaktMax = wasserkontakt;
 		}
 		return wasserkontaktMax;
 	}
-	
+
 	int getWasserkontaktMin(int wasserkontakt) {
-    	
+
     	if (wasserkontaktMin == NULL || wasserkontakt < wasserkontaktMin) {
     		wasserkontaktMin = wasserkontakt;
 		}
@@ -397,11 +397,44 @@
 
       char ipclient[255] = "255.255.255.255";
 		//char ipclient[255] = ip;
+    char sensorname[255];
+    char sensorwert[255];
+    int size = sizeof(cmd);
+    int i = 0;
+                                      // Teilt diese an der Leerzeichen und speichert sie in den bei "**token" angegebenen Speicherort (Array)
+    char klammerauf[] = "[";
+    char klammerzu[] = "]";
+    char doppelpoint[] = ":";
+    while(i < size){
+        if (strcmp(cmd[i], "<") == 0) {
+          int run = 1;
+          int c = 0;
+          while(run){
+            ipclient[c] = cmd[i];
+            c++;
+            i++;
+            if(strcmp(cmd[i], ">")){
+              run = 0;
+            }
+          }
+        }
+        c = 0;
+        if(strcmp(cmd[i], klammerauf)){
+          while(cmd[i]!=doppelpoint){
+            sensorname[c] = cmd[i];
+            i++;
+            c++;
+          }
+          i++;
+          c=0;
+          while(cmd[i]!=klammerzu){
+            sensorwert[c] = cmd[i];
+          }
+        }
+    i++;
+    }
 
-      
-     /* time_t now;
-  	  time(&now);
-  	  printf("Sekunden seit 01.01.1970 00:00:00 Uhr: %d\n", now);*/
+      //TODO Check File Ip and Compare with ipclient --> dann Min Max funktion und aktualisierung.
 
       FILE *fp;
 
