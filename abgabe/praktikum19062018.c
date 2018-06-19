@@ -331,14 +331,14 @@
 
 
    float getTempreMax(float tempre, float tempreMax ) {
-    	if (tempreMax == NULL || tempre > tempreMax) {
+    	if (tempreMax == 0 || tempre > tempreMax) {
     		tempreMax = tempre;
   		}
   		return tempreMax;
    }
 
 	 float getTempreMin(float tempre, float tempreMin) {
-      	if (tempreMin == NULL || tempre < tempreMin) {
+      	if (tempreMin == 0 || tempre < tempreMin) {
         		tempreMin = tempre;
     		}
 		 return tempreMin;
@@ -346,7 +346,7 @@
 
 	float getFeuchtigkeitMax(float feuchtigkeit, float feuchtigkeitsMax) {
 
-    	if (feuchtigkeitMax == NULL || feuchtigkeit > feuchtigkeitMax) {
+    	if (feuchtigkeitMax == 0 || feuchtigkeit > feuchtigkeitMax) {
     		feuchtigkeitMax = feuchtigkeit;
 		}
 		return feuchtigkeitMax;
@@ -355,7 +355,7 @@
 	float getFeuchtigkeitMin(float feuchtigkeit, float feuchtigkeitsMin) {
 
 
-    	if (feuchtigkeitMin == NULL || feuchtigkeit < feuchtigkeitMin) {
+    	if (feuchtigkeitMin == 0 || feuchtigkeit < feuchtigkeitMin) {
     		feuchtigkeitMin = feuchtigkeit;
 		}
 		return feuchtigkeitMin;
@@ -363,7 +363,7 @@
 
 	int getGerauschMax(int gerausch, int gerauschMax) {
 
-    	if (gerauschMax == NULL || gerausch > gerauschMax) {
+    	if (gerauschMax == 0 || gerausch > gerauschMax) {
     		gerauschMax = gerausch;
 		}
 		return gerauschMax;
@@ -371,7 +371,7 @@
 
 	int getGerauschMin(int gerausch int gerauschMin) {
 
-    	if (gerauschMin == NULL || gerausch < gerauschMin) {
+    	if (gerauschMin == 0 || gerausch < gerauschMin) {
     		gerauschMin = gerausch;
 		}
 		return gerauschMin;
@@ -380,7 +380,7 @@
 	int getWasserkontaktMax(int wasserkontakt, int wasserkontaktMax) {
 
 
-    	if (wasserkontaktMax == NULL || wasserkontakt > wasserkontaktMax) {
+    	if (wasserkontaktMax == 0 || wasserkontakt > wasserkontaktMax) {
     		wasserkontaktMax = wasserkontakt;
 		}
 		return wasserkontaktMax;
@@ -389,14 +389,14 @@
 	int getWasserkontaktMin(int wasserkontakt, int wasserkontaktMin) {
 
 
-    	if (wasserkontaktMin == NULL || wasserkontakt < wasserkontaktMin) {
+    	if (wasserkontaktMin == 0 || wasserkontakt < wasserkontaktMin) {
     		wasserkontaktMin = wasserkontakt;
 		}
 		return wasserkontaktMin;
 	}
 
 //How to write a neat Log 101
-      void writeLog(char *ip, char *cmd){
+      void writeLog(char cmd){
 
 
         char ipclient[255] = "255.255.255.255";
