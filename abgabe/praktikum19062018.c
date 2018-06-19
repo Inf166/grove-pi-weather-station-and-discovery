@@ -31,7 +31,7 @@
 #define HIGHPRIO 1
 #define MIDDLEPRIO 2
 #define LOWPRIO 3
-
+//Initialisierung
     float tempreMax;
     float tempreMin;
 
@@ -43,7 +43,7 @@
 
     int wasserkontaktMax;
     int wasserkontaktMin;
-
+//Sensoren überall
     int getColision(int pport){
         int port = pport; //connect the sensor to a digital port
         //Exit on failure to start communications with the GrovePi
@@ -327,25 +327,25 @@
         }
     }
 
-    //es folgen die Funktionen um die Maximal- und Minimalwerte der jeweiligen Sensoren zu ermitteln
+//es folgen die Funktionen um die Maximal- und Minimalwerte der jeweiligen Sensoren zu ermitteln
 
-    
-    float getTempreMax(float tempre, float tempreMax ) {
-    	
-    	if (tempreMax == 0 || tempre > tempreMax) {
+
+     float getTempreMax(float tempre, float tempreMax ) {
+    	if (tempreMax == NULL || tempre > tempreMax) {
     		tempreMax = tempre;
-		}
-		return tempreMax;
-	}
-	
-	float getTempreMin(float tempre, float tempreMin) {
+  		}
+  		return tempreMax;
+	  }
 
-    	if (tempreMin == 0 || tempre < tempreMin) {
+
+	   float getTempreMin(float tempre, float tempreMin) {
+  	if (tempreMin == NULL || tempre < tempreMin) {
     		tempreMin = tempre;
 		}
 		return tempreMin;
 	}
 
+<<<<<<< HEAD
 
 	float getFeuchtigkeitMax(float feuchtigkeit, float feuchtigkeitsMax) {
 
@@ -426,36 +426,114 @@
             i++;
             if(strcmp(cmd[i], ">")){
               run = 0;
+=======
+    	float getFeuchtigkeitMax(float feuchtigkeit, float feuchtigkeitsMax) {
+
+        	if (feuchtigkeitMax == NULL || feuchtigkeit > feuchtigkeitMax) {
+        		feuchtigkeitMax = feuchtigkeit;
+    		}
+    		return feuchtigkeitMax;
+    	}
+
+    	float getFeuchtigkeitMin(float feuchtigkeit, float feuchtigkeitsMin) {
+
+
+        	if (feuchtigkeitMin == NULL || feuchtigkeit < feuchtigkeitMin) {
+        		feuchtigkeitMin = feuchtigkeit;
+    		}
+    		return feuchtigkeitMin;
+    	}
+
+    	int getGerauschMax(int gerausch, int gerauschMax) {
+
+        	if (gerauschMax == NULL || gerausch > gerauschMax) {
+        		gerauschMax = gerausch;
+    		}
+    		return gerauschMax;
+    	}
+
+    	int getGerauschMin(int gerausch int gerauschMin) {
+
+        	if (gerauschMin == NULL || gerausch < gerauschMin) {
+        		gerauschMin = gerausch;
+    		}
+    		return gerauschMin;
+    	}
+
+    	int getWasserkontaktMax(int wasserkontakt, int wasserkontaktMax) {
+
+
+        	if (wasserkontaktMax == NULL || wasserkontakt > wasserkontaktMax) {
+        		wasserkontaktMax = wasserkontakt;
+    		}
+    		return wasserkontaktMax;
+    	}
+
+    	int getWasserkontaktMin(int wasserkontakt, int wasserkontaktMin) {
+
+
+        	if (wasserkontaktMin == NULL || wasserkontakt < wasserkontaktMin) {
+        		wasserkontaktMin = wasserkontakt;
+    		}
+    		return wasserkontaktMin;
+    	}
+
+//How to write a neat Log 101
+      void writeLog(char *ip, char *cmd){
+
+
+        char ipclient[255] = "255.255.255.255";
+    		//char ipclient[255] = ip;
+        char sensorname[255];
+        char sensorwert[255];
+        int size = sizeof(cmd);
+        int i = 0;
+                                          // Teilt diese an der Leerzeichen und speichert sie in den bei "**token" angegebenen Speicherort (Array)
+        char klammerauf[] = "[";
+        char klammerzu[] = "]";
+        char doppelpoint[] = ":";
+        while(i < size){
+            if (strcmp(cmd[i], "<") == 0) {
+              int run = 1;
+              int c = 0;
+              while(run){
+                ipclient[c] = cmd[i];
+                c++;
+                i++;
+                if(strcmp(cmd[i], ">")){
+                  run = 0;
+                }
+              }
+>>>>>>> db802b7f6897578b40b9dcaa7c4c45ef7529c18b
             }
-          }
+            c = 0;
+            if(strcmp(cmd[i], klammerauf)){
+              while(cmd[i]!=doppelpoint){
+                sensorname[c] = cmd[i];
+                i++;
+                c++;
+              }
+              i++;
+              c=0;
+              while(cmd[i]!=klammerzu){
+                sensorwert[c] = cmd[i];
+              }
+            }
+        i++;
         }
-        c = 0;
-        if(strcmp(cmd[i], klammerauf)){
-          while(cmd[i]!=doppelpoint){
-            sensorname[c] = cmd[i];
-            i++;
-            c++;
-          }
-          i++;
-          c=0;
-          while(cmd[i]!=klammerzu){
-            sensorwert[c] = cmd[i];
-          }
-        }
-    i++;
-    }
 
-      //TODO Check File Ip and Compare with ipclient --> dann Min Max funktion und aktualisierung.
+          //TODO Check File Ip and Compare with ipclient --> dann Min Max funktion und aktualisierung.
 
-      FILE *fp;
+          FILE *fp;
 
-      fp = fopen("Sensordaten.txt", "w");
+          fp = fopen("Sensordaten.txt", "w");
 
-      if(fp == NULL) {
-      	printf(" fp hat keine Datei zugewiesen.\n");
-      }else {
-      	//<255.255.255.255> [ Sensor: min: xx; derzeitig: xx, max: xx ]
+          if(fp == NULL) {
+          	printf(" fp hat keine Datei zugewiesen.\n");
+          }else {
+          	//<255.255.255.255> [ Sensor: min: xx; derzeitig: xx, max: xx ]
 
+<<<<<<< HEAD
   		/*fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", ipclient, getColision(COLISIONPORT) );
   		fprintf(fp, "<%s> [ TEMPERATUR: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getTempreMin(getTempre(TEMPHUMPORT), tempreMin), getTempre(TEMPHUMPORT), getTempreMax(getTempre(TEMPHUMPORT,tempreMax)) );
   		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getFeuchtigkeitMin(getFeuchtigkeit(TEMPHUMPORT)), getFeuchtigkeit(TEMPHUMPORT), getFeuchtigkeitMax(getFeuchtigkeit(TEMPHUMPORT)) );
@@ -469,9 +547,22 @@
 
       }
     }
+=======
+      		fprintf(fp, "<%s> [ COLLISION: derzeitig: %d ]\n", ipclient, getColision(COLISIONPORT) );
+      		fprintf(fp, "<%s> [ TEMPERATUR: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getTempreMin(getTempre(TEMPHUMPORT)), getTempre(TEMPHUMPORT), getTempreMax(getTempre(TEMPHUMPORT)) );
+      		fprintf(fp, "<%s> [ FEUCHTIGKEIT: min: %.2f, derzeitig: %.2f, max: %.2f ]\n", ipclient, getFeuchtigkeitMin(getFeuchtigkeit(TEMPHUMPORT)), getFeuchtigkeit(TEMPHUMPORT), getFeuchtigkeitMax(getFeuchtigkeit(TEMPHUMPORT)) );
+      		fprintf(fp, "<%s> [ GERAEUSCH: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getGerauschMin(getGerausch(SOUNDPORT)), getGerausch(SOUNDPORT), getGerauschMax(getGerausch(SOUNDPORT)) );
+      		fprintf(fp, "<%s> [ BEWEGUNG: derzeitig: %d ]\n", ipclient, getBewegung(MOTIONPORT) );
+      		fprintf(fp, "<%s> [ WASSER: min: %d, derzeitig: %d, max: %d ]\n", ipclient, getWasserkontaktMin(getWasserkontakt(MOISTUREPORT)), getWasserkontakt(MOISTUREPORT), getWasserkontaktMax(getWasserkontakt(MOISTUREPORT)) );
+>>>>>>> db802b7f6897578b40b9dcaa7c4c45ef7529c18b
+
+      	printf("Die Tabelle wurde gespeichert.\n");
+      	fclose(fp);
 
 
-
+          }
+        }
+//"Braucht man eine Main-Methode?"
     int main(){
       // Raspberry Sensoren working
         init();
