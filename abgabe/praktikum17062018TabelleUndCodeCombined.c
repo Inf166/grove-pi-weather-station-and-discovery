@@ -236,7 +236,7 @@
                         sscanf(args[2], "%d", &port);
                         serv_ad.sin_port = htons(port);//Portnummer
                         printf("Portnummer %d\n", port);//Portnummer
-                        serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
+                        serv_ad.sin_addr.s_addr = inet_ntoa(args[1]);   //Vlt noch ändern in IP Adresse
                         printf("IP Adresse %s\n", args[1]);
                         printf("Uebernehme eingegebene IP und Port Nummern\n");
                         //     Typ              Cast zur Adresse              Länge der Adresse
@@ -284,7 +284,7 @@
         struct sockaddr_in serv_ad;
         serv_ad.sin_family = AF_INET;           //Adress-Familie
         serv_ad.sin_port = htons(port);//Portnummer
-        serv_ad.sin_addr.s_addr = inet_addr(ip);   //Vlt noch ändern in IP Adresse
+        serv_ad.sin_addr.s_addr = inet_ntoa(ip);   //Vlt noch ändern in IP Adresse
         //     Typ              Cast zur Adresse              Länge der Adresse
         int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
         //Auffangen von Connection error
@@ -338,7 +338,7 @@
       char ipclient[255] = "255.255.255.255";
 		//char ipclient[255] = ip;
 
-      
+
      /* time_t now;
   	  time(&now);
   	  printf("Sekunden seit 01.01.1970 00:00:00 Uhr: %d\n", now);*/
@@ -374,9 +374,9 @@
         int running = 1;
         while(running){
             char eingabe[256];
-            char *args[3];
+            char *args[2];
             scanf("%s", &eingabe);
-            strtoken(eingabe,args,3);
+            strtoken(eingabe,args,2);
             if(strcmp(args[0], "CONNECT") == 0){
                 int port;
                 sscanf(args[2], "%d", &port);
