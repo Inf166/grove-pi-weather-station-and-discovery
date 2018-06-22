@@ -15,8 +15,10 @@
 	
 	/*"Dabei soll der Server intern verwalten, wann sich welcher Client verbunden hat."
 	impliziert doch irgendwie das wird n timecode benötigen und so ne art log, nur halt nicht in
-	einer externen datei sondern am besten n satruct mit meheren strings, oder n char-array-array sozusagen, zusätzlich n char-array-array für alle
-	aktuell verbundenen ohne timecode.  
+	einer externen datei sondern am besten n satruct mit meheren strings, oder n char-array-array sozusagen, zusätzlich dann halt mit dem
+	ganzen derzeitige clients gedä, der
+	
+	printf("%s \n", aktuelleClients[i]); in ner for-Schleife 
 
     //Attribut
     struct client meineClients[10]; //inklusive mir
