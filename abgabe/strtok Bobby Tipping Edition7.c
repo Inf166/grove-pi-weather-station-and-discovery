@@ -4,7 +4,7 @@
 
 
 
- char * strtokBobbyTippingEdition(char *input[], int num) {
+ char * strtokBobbyTippingEdition(char input[], int num) {
  	
  	
  	char worda[8];
@@ -12,11 +12,11 @@
  	char wordc[8];
  
  	 
- 	 
+ 	int s=0
  	int i=0;
  	int j=0;
  	
- 	while (1) {
+ 	while (s==0) {
  		
  		worda[j]=input[i];
  		i++;
@@ -24,11 +24,11 @@
  		if (input[i]==' ') {
  			i++;
  			j=0;
- 			break;
+ 			s++;
 		 }
 	}
 		 
-	while (1) {
+	while (s==1) {
  	
  		wordb[j]=input[i];
  		i++;
@@ -36,18 +36,18 @@
  		if (input[i]==' ') {
  			i++;
  			j=0;
- 			break;
+ 			s++;
 		 }
  		
 	 }
 	 
-	while (1) {
+	while (s==2) {
  	
  		wordc[j]=input[i];
  			i++;
  			j++;
  		if (input[i]=='\0') {
- 			break;
+ 			s++;
 		 }
  		
 	 }
