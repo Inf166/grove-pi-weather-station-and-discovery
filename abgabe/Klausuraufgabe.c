@@ -108,7 +108,8 @@
     };
     struct client {
        char ipdesclient[255];
-       struct sensorwerte sensorwerte;
+       int isNotEmpty;
+       struct sensorwerte meineSensorwerte;
     };
 
     //Sensoren InItIaLiZe
@@ -215,7 +216,7 @@
         char separator[] = " ";
         token[0] = strtok(str, separator);
         while(token[i++] && i < size){
-            token[i] = strtok(NULL,separator);
+            token[i] = strtok(NULL,separator);//TODO NULL durch str ersetzt
         }
         return (i);
     }
@@ -224,8 +225,8 @@
     // Raspberry Sensoren working
     init();
     connectLCD();
+        setLCDTextmitRGB("Tadaaa",LOWPRIO);
     //Servershit incoming
-
         //Erstelle Server Socket
         int server_socket;
         server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -248,90 +249,217 @@
         } else{ puts("Bind erfolgreich.\n"); // Sonst Bestätigung
         }
 
+        //LEGE LISTE VON CONNECTED-CLIENTS AN
+        struct client connectedClients[35];
+//        snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),inet_ntoa(server_address.sin_addr));
+//        connectedClients[0].isNotEmpty = 1;
+
         //listen to conections
         listen(server_socket, 5);
         puts("Warten auf verbindung...\n");
 
         //Lege Client Socket an
-        struct sockaddr_in client;
+        struct sockaddr_in client_addr;
         socklen_t client_len=sizeof(struct sockaddr_in);
 
+
     //Lets Split into Childs and Parent
-    int pid, fileDesc;
-    static int counter=0;
-    while (1) {
-        fileDesc = accept(server_socket, (struct sockaddr *) &client, &client_len); //TODO soll nicht iwie der vater zuhören? und akzeptieren?
-        puts("Verbindung akzeptiert\n");
-        if ((pid = fork()) <0) // Fehlerfall im FORK
+    int pid2, fileDesc2;
+    static int counter2=0;
+        if ((pid2 = fork()) <0) // Fehlerfall im FORK
         {
             perror("Fork fehlgeschlagen\n");
-            close(fileDesc);
-            continue;
+            close(fileDesc2);
+//            continue;
         }
-        else if (pid > 0) //Parentprozess nach dem FORK //TODO also hier?
+        else if (pid2 > 0) //Parentprozess nach dem FORK //TODO also hier?
         {
-            close(fileDesc);
-            counter++;
+            close(fileDesc2);
+            counter2++;
             printf("Hier läuft der Parentprozess\n");
-            continue;
-        }
-        else if (pid == 0) //Childprozess nach dem FORK Hier beginnt die Kommunikation mit dem Client
-        {
-            char buf[100];
-            counter++;
-            snprintf(buf, sizeof buf, "Hallo User %d\n", counter);
-            send (fileDesc, buf, strlen(buf), 0);
-            int running=1;
-            while(running) { //running als Abbruchsbedingung für die Kommunikation - Wird running geändert ist die Server-Client-Kommunikation abgeschlossen
-                char client_cmd[256];
-                char *args[2];
+            char admin_cmd[256];
+            char *args2[3];
+            printf("Bitte Befehl eingeben: \n");
+            scanf("%s", &admin_cmd);
+            printf("Debug: %d\n",strtoken(admin_cmd,args2,3));
+            printf("Befehl: %s IP: %s Port: %s\n", args2[0], args2[1], args2[2]);
+                    if (strcmp(args2[0], "PEERS") == 0) {     //Liste aller verbundenen Clients
+                        //TODO Tabellen ausgabe
+                        int i = 0;
+                        while(connectedClients[i].isNotEmpty!=0){
+                            printf("Client-IP: %s\n",connectedClients[i].ipdesclient);
 
-                recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
-                printf("User: %s\n", client_cmd);
+                            printf("Min-DB: %d\n",connectedClients[i].meineSensorwerte.minDB);
+                            printf("Ak-DB: %d\n",connectedClients[i].meineSensorwerte.akDB);
+                            printf("Max-DB: %d\n",connectedClients[i].meineSensorwerte.maxDB);
 
-                strtoken(client_cmd,args,3); // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
-                if (strcmp(args[0], "PEERS") == 0) {     //Liste aller verbundenen Clients
-                    //TODO Tabellen ausgabe
-                    setLCDTextmitRGB("Alles cool yo!", LOWPRIO);
-                } else if (strcmp(args[0], "CONNECT") == 0) {     //Verbinde mit client via IP und PORT
-                    //Wir machen einen Socket:
-                    int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
-                    client_socket = socket(AF_INET, SOCK_STREAM, 0);
-                    printf("Lege neuen Socket für andere Server an");
-                    //Genauere Adresse fuer den Socket
-                    struct sockaddr_in serv_ad;
-                    serv_ad.sin_family = AF_INET;           //Adress-Familie
-                    serv_ad.sin_port = htons((int) args[2]);         //Portnummer
-                    serv_ad.sin_addr.s_addr = inet_ntoa(args[1]);   //Vlt noch ändern in IP Adresse
-                    printf("Uebernehme eingegebene IP und Port Nummern");
-                    //     Typ              Cast zur Adresse              Länge der Adresse
-                    int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
-                    //Auffangen von Connection error
-                    if(conect_status == -1){
-                        printf("Verbindung fehlgeschlagen...\n\n");
+                            printf("Min-Water: %d\n",connectedClients[i].meineSensorwerte.minWater);
+                            printf("Ak-Water: %d\n",connectedClients[i].meineSensorwerte.akWater);
+                            printf("Max-Water: %d\n",connectedClients[i].meineSensorwerte.maxWater);
+
+                            printf("Min-Temp: %\n",connectedClients[i].meineSensorwerte.minTemp);
+                            printf("Ak-Temp: %\n",connectedClients[i].meineSensorwerte.akTemp);
+                            printf("Max-Temp: %\n",connectedClients[i].meineSensorwerte.maxTemp);
+
+                            printf("Min-Hum: %\n",connectedClients[i].meineSensorwerte.minHum);
+                            printf("Ak-Hum: %\n",connectedClients[i].meineSensorwerte.akHum);
+                            printf("Max-Hum: %\n",connectedClients[i].meineSensorwerte.maxHum);
+
+                            printf("Colision: %\n",connectedClients[i].meineSensorwerte.colision);
+
+                            printf("Motion: %\n\n",connectedClients[i].meineSensorwerte.motion);
+                            i++;
+                        }
+                        setLCDTextmitRGB("Alles cool yo!", LOWPRIO);
+                    } else if (strcmp(args2[0], "CONNECT") == 0) {     //Verbinde mit client via IP und PORT
+                        //Wir machen einen Socket:
+                        int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
+                        client_socket = socket(AF_INET, SOCK_STREAM, 0);
+                        printf("Lege neuen Socket für andere Server an\n");
+                        //Genauere Adresse fuer den Socket
+                        struct sockaddr_in serv_ad;
+                        serv_ad.sin_family = AF_INET;           //Adress-Familie
+                        serv_ad.sin_port = htons((int) args2[2]);         //Portnummer
+                        printf("%d\n", (int) args2[2]);
+                        printf("%s\n", args2[1]);
+                        printf("%s\n", inet_addr(args2[1]));
+//                        serv_ad.sin_addr.s_addr = args2[1];
+                        serv_ad.sin_addr.s_addr = inet_addr(args2[1]);
+//                        serv_ad.sin_addr.s_addr = inet_ntoa(inet_addr(args2[1]));   //Vlt noch ändern in IP Adresse
+                        printf("Uebernehme eingegebene IP und Port Nummern\n");
+                        //     Typ              Cast zur Adresse              Länge der Adresse
+                        int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
+                        //Auffangen von Connection error
+                        if(conect_status == -1){
+                            printf("Verbindung fehlgeschlagen...\n\n");
+                        }
+                        //Empfangen von Daten
+                        char server_antwort[256];
+                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                        //Ausgabe
+                        printf("Dateien empfangen: %s\n", server_antwort);
+                        //Verbinde mit client via IP und PORT
                     }
-                    //Empfangen von Daten
-                    char server_antwort[256];
-                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+//            continue;
+        }
+        else if (pid2 == 0) //Childprozess nach dem FORK Hier beginnt die Kommunikation mit dem Client
+        {
+            //Lets Split into Childs and Parent
+            int pid, fileDesc;
+            static int counter=0;
+            while (1) {
+                fileDesc = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
+                printf("IP address is: %s\n", inet_ntoa(client_addr.sin_addr));
 
-                    //Ausgabe
-                    printf("Dateien empfangen: %s\n", server_antwort);
-                //Verbinde mit client via IP und PORT
-                } else if (strcmp(args[0], "E") == 0) {
-                    snprintf(buf, sizeof buf, "R.I.P. in Piece, User %d\n", counter);
+                puts("Verbindung akzeptiert\n");
+                if ((pid = fork()) <0) // Fehlerfall im FORK
+                {
+                    perror("Fork fehlgeschlagen\n");
+                    close(fileDesc);
+                    continue;
+                }
+                else if (pid > 0) //Parentprozess nach dem FORK //TODO also hier?
+                {
+                    close(fileDesc);
+                    counter++;
+                    char buf[100];
+                    printf("Hier läuft der Parentprozess\n");
+                    while(1){
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [TEMP.: %f]\n", getTempre(TEMPHUMPORT));
                     send (fileDesc, buf, strlen(buf), 0);
-                    running = 0;
-                //Ist das 1. Wort unbekant gibt es einne Fehlerausgabe
-                } else {
-                    char message [40]={0};
-                    sprintf(message,"Fehlerhafte Eingabe.\n");
-                    send (fileDesc, message, strlen(message), 0);
+                    setLCDTextmitRGB(buf, LOWPRIO);
+                        pi_sleep(2000);
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [HUMIDITY: %f]\n", getTempre(TEMPHUMPORT));
+                    send (fileDesc, buf, strlen(buf), 0);
+                    setLCDTextmitRGB(buf, LOWPRIO);
+                        pi_sleep(2000);
+                    char* response;
+                    if(getBewegung(MOTIONPORT)==1){ response = "DETECTED";setLCDTextmitRGB("DANGER\n MOTION", HIGHPRIO);}
+                    else {response = "NONE";setLCDTextmitRGB("<192.168.2.27>\n [Nothing\n here]\n", LOWPRIO);}
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [MOTION: %s]\n", response);
+                    send (fileDesc, buf, strlen(buf), 0);
+                        pi_sleep(2000);
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [SOUND: %d]\n", getGerausch(SOUNDPORT));
+                    send (fileDesc, buf, strlen(buf), 0);
+                        pi_sleep(2000);
+                    if(getColision(COLISIONPORT)==1){ response = "DETECTED";setLCDTextmitRGB("<192.168.2.27>\n [DANGER COLISION]\n", HIGHPRIO);}
+                    else {response = "NONE";setLCDTextmitRGB("<192.168.2.27>\n [Nothing here]\n", LOWPRIO);}
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [COLISION: %s]\n", response);
+                    send (fileDesc, buf, strlen(buf), 0);
+                    setLCDTextmitRGB(buf, LOWPRIO);
+                        pi_sleep(2000);
+                    snprintf(buf, sizeof buf, "<192.168.2.27>\n [MOISTURE: %d]\n", getWasserkontakt(MOISTUREPORT));
+                    send (fileDesc, buf, strlen(buf), 0);
+                    setLCDTextmitRGB(buf, LOWPRIO);
+                        pi_sleep(2000);
+                    }
+                    continue;
+                }
+                else if (pid == 0) //Childprozess nach dem FORK Hier beginnt die Kommunikation mit dem Client
+                {
+                    char buf[100];
+                    counter++;
+                    snprintf(buf, sizeof buf, "Hallo User %d\n", counter);
+                    send (fileDesc, buf, strlen(buf), 0);
+                    int running=1;
+                    while(running) { //running als Abbruchsbedingung für die Kommunikation - Wird running geändert ist die Server-Client-Kommunikation abgeschlossen
+                        char client_cmd[256];
+                        char *args[2];
+
+                        recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
+                        printf("User: %s\n", client_cmd);
+
+                        strtoken(client_cmd, args, 2); // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
+
+                        if(strcmp(args[0], "GET") == 0){
+                            if(strcmp(args[1], "TEMPERATURE") == 0){
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [TEMPERATURE: %f]\n", getTempre(TEMPHUMPORT));
+                                send (fileDesc, buf, strlen(buf), 0);
+                                setLCDTextmitRGB(buf, LOWPRIO);
+                            } else if(strcmp(args[1], "HUMIDITY") == 0){
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [HUMIDITY: %f]\n", getTempre(TEMPHUMPORT));
+                                send (fileDesc, buf, strlen(buf), 0);
+                                setLCDTextmitRGB(buf, LOWPRIO);
+                            }else if(strcmp(args[1], "MOTION") == 0){
+                                char* response;
+                                if(getBewegung(MOTIONPORT)==1){ response = "DETECTED";setLCDTextmitRGB("DANGER MOTION", HIGHPRIO);}
+                                else {response = "NONE";}
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [MOTION: %s]\n", response);
+                                send (fileDesc, buf, strlen(buf), 0);
+                            }else if(strcmp(args[1], "SOUND") == 0){
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [SOUND: %d]\n", getGerausch(SOUNDPORT));
+                                send (fileDesc, buf, strlen(buf), 0);
+                                setLCDTextmitRGB(buf, LOWPRIO);
+                            }else if(strcmp(args[1], "COLISION") == 0){
+                                char* response;
+                                if(getColision(COLISIONPORT)==1){ response = "DETECTED";setLCDTextmitRGB("DANGER COLISION", HIGHPRIO);}
+                                else {response = "NONE";}
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [COLISION: %f]\n", response);
+                                send (fileDesc, buf, strlen(buf), 0);
+                            }else if(strcmp(args[1], "MOISTURE") == 0){
+                                snprintf(buf, sizeof buf, "<192.168.2.27> [MOISTURE: %d]\n", getWasserkontakt(MOISTUREPORT));
+                                send (fileDesc, buf, strlen(buf), 0);
+                                setLCDTextmitRGB(buf, LOWPRIO);
+                            }
+                        } else if (strcmp(args[0], "E") == 0) {
+                            snprintf(buf, sizeof buf, "R.I.P. in Piece, User %d\n", counter);
+                            send (fileDesc, buf, strlen(buf), 0);
+                            running = 0;
+                        //Ist das 1. Wort unbekant gibt es einne Fehlerausgabe
+                        } else {
+                            char message [40]={0};
+                            sprintf(message,"Fehlerhafte Eingabe.\n");
+                            send (fileDesc, message, strlen(message), 0);
+                        }
+                    }
+                    close(fileDesc); // wird die whileschleife verlassen wird die Verbindung aufgelöst
+                    break;
                 }
             }
-            close(fileDesc); // wird die whileschleife verlassen wird die Verbindung aufgelöst
-            break;
+            close(fileDesc2); // wird die whileschleife verlassen wird die Verbindung aufgelöst
+//            break;
         }
-    }
     //close Funktion
     close(server_socket);
     return 0;
