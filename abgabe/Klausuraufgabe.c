@@ -348,6 +348,9 @@
                         //Ausgabe
                         printf("Dateien empfangen: %s\n", server_antwort);
                         //Verbinde mit client via IP und PORT
+                    }else if (strcmp(args2[0], "E") == 0) {
+                        close(fileDesc2);
+                        //Ist das 1. Wort unbekant gibt es einne Fehlerausgabe
                     }
 //            continue;
         }
@@ -463,7 +466,7 @@
                     close(fileDesc); // wird die whileschleife verlassen wird die Verbindung aufgelöst
                     break;
                 //Schließe die While schleife
-                } 
+                }
             }
             close(fileDesc2); // wird die whileschleife verlassen wird die Verbindung aufgelöst
 //            break;
