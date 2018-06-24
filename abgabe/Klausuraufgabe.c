@@ -14,8 +14,8 @@
 	
 	
 	/*"Dabei soll der Server intern verwalten, wann sich welcher Client verbunden hat."
-	impliziert doch irgendwie das wird n timecode benötigen und so ne art log, nur halt nicht in
-	einer externen datei sondern am besten n satruct mit meheren strings, oder n char-array-array sozusagen, zusätzlich n char-array-array für alle
+	impliziert doch irgendwie das wird n timecode benï¿½tigen und so ne art log, nur halt nicht in
+	einer externen datei sondern am besten n satruct mit meheren strings, oder n char-array-array sozusagen, zusï¿½tzlich n char-array-array fï¿½r alle
 	aktuell verbundenen ohne timecode.  
 
     //Attribut
@@ -402,8 +402,6 @@
                     setLCDTextmitRGB(buf, LOWPRIO);
                         pi_sleep(2000);
                     }
-<<<<<<< HEAD
-                    continue;
                 }
                 else if (pid == 0) //Childprozess nach dem FORK Hier beginnt die Kommunikation mit dem Client
                 {
@@ -464,26 +462,8 @@
                     }
                     close(fileDesc); // wird die whileschleife verlassen wird die Verbindung aufgelÃ¶st
                     break;
-=======
-                    //Empfangen von Daten
-                    char server_antwort[256];
-                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                    //Ausgabe
-                    printf("Dateien empfangen: %s\n", server_antwort);
-                //Verbinde mit client via IP und PORT
-                	--
-                } else if (strcmp(args[0], "E") == 0) {
-                    snprintf(buf, sizeof buf, "R.I.P. in Piece, User %d\n", counter);
-                    send (fileDesc, buf, strlen(buf), 0);
-                    running = 0;
-                //Ist das 1. Wort unbekannt gibt es eine Fehlerausgabe
-                } else {
-                    char message [40]={0};
-                    sprintf(message,"Fehlerhafte Eingabe.\n");
-                    send (fileDesc, message, strlen(message), 0);
->>>>>>> 534c75913463a18764528337661d8576e693b838
-                }
+                //SchlieÃŸe die While schleife
+                } 
             }
             close(fileDesc2); // wird die whileschleife verlassen wird die Verbindung aufgelÃ¶st
 //            break;
