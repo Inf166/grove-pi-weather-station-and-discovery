@@ -145,7 +145,7 @@
     }
 
     //Kreiert aus den feinsten Zutaten:
-    char token_a[255]; //Tokens m�ssen au�erhalb der Funktion Deklariert werden, weil es mit "lokalem Speicher" nicht geht
+    char token_a[255]; //Tokens muessen ausserhalb der Funktion Deklariert werden, weil es mit "lokalem Speicher" nicht geht
     char token_b[255];
     char token_c[255];
 
@@ -153,19 +153,19 @@
     char * strtokBobbyTippingEdition(char input[], int num) {
 
 
-        int t=0; //F�r die Whileschleifen damit die Wissen welcher Token dran ist, 0=A, 1=B, 2=C, 3=Fertig
-        int i=0; //Iterator f�r jeden char des Input Char Arrays
-        int j=0; // Iterator f�r jeden Char des jeweiligen Tokens, wird z�r�ck auf 0 gesetzt wenn Token fertig ist
+        int t=0; //Fuer die Whileschleifen damit die Wissen welcher Token dran ist, 0=A, 1=B, 2=C, 3=Fertig
+        int i=0; //Iterator fuer jeden char des Input Char Arrays
+        int j=0; // Iterator fuer jeden Char des jeweiligen Tokens, wird zurueck auf 0 gesetzt wenn Token fertig ist
 
         printf("Input: %s\n", input); //gibt aus welchen Input die Funktion bekommen hat
-        printf("Read and Set(A): "); //Die chars f�r Token A werden festgelegt
+        printf("Read and Set(A): "); //Die chars fuer Token A werden festgelegt
         while (t==0) {
 
             token_a[j]=input[i];
-            printf("%c=%c, ", j, token_a[j], i, input[i] ); //Anzeige f�r jeweiligen Char
+            printf("%c=%c, ", j, token_a[j], i, input[i] ); //Anzeige fuer jeweiligen Char
             i++;
             j++;
-            if (input[i]==32) { //32 ist der ASCII Code f�r Leerzeichen, es wird \0 gesetzt und es geht weiter zum n�chsten Token
+            if (input[i]==32) { //32 ist der ASCII Code fuer Leerzeichen, es wird \0 gesetzt und es geht weiter zum naechsten Token
                 token_a[j]='\0';
                 printf("\nToken A has detected Space and sets Zerobyte");
                 i++;
@@ -217,7 +217,7 @@
             case 0: printf("RETURN: Token A: %s\n\n", token_a); return token_a; break; //der Zweite Parameter num gibt an welcher Token returnt wird
             case 1: printf("RETURN: Token B: %s\n\n", token_b);return token_b; break;
             case 2: printf("RETURN: Token C: %s\n\n", token_c);return token_c; break;
-            default: return "F�r den zweiten Parameter ist nur 0-2 g�ltig";
+            default: return "Fuer den zweiten Parameter ist nur 0-2 gueltig";
         }
 
 
@@ -369,13 +369,13 @@ int main(){
                                     // SEND Welcome
                                     snprintf(buf, sizeof buf, "Hallo User %d\n", counter);
                                     send (fileDesc, buf, strlen(buf), 0);
-                                    // Abbruchvariable: running als Abbruchsbedingung für die Kommunikation - Wird running geändert ist die Server-Client-Kommunikation abgeschlossen
+                                    // Abbruchvariable: running als Abbruchsbedingung fuer die Kommunikation - Wird running geaendert ist die Server-Client-Kommunikation abgeschlossen
                                     int running=1;
                                     while(running) {
                                         // RESERVIERE VARIABLEN
                                         char client_cmd[256];
                                         char *args[2];
-                                        // RECIEVE NICE VIBES
+                                        // RECEIVE NICE VIBES
                                         recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
                                         printf("User: %s\n", client_cmd);
                                         // teilt die Client-Nachricht in 2 Teile an den Leerstellen WICHTIG!! Das 2. Wort muss mit einem Leerzeichen enden!!
