@@ -32,6 +32,12 @@
 #define MIDDLEPRIO 2
 #define LOWPRIO 3
 
+    //Struct Message
+    struct message {
+      long mstype;        //msg type - must be >0
+      char content[256];
+    };
+
     //Struct to create Log for Sensors
     struct sensorwerte {
        float minTemp;
@@ -230,7 +236,7 @@ int main(){
 // Just some Stuff for the Pi
     init();
     connectLCD();
-    
+
 // The Server Stuff
     // Erstelle Server Socket
         int server_socket;
@@ -239,7 +245,7 @@ int main(){
             perror("Error: unable to open a socket\n");
             setLCDTextmitRGB("FATAL ERROR :x",HIGHPRIO);
         }
-    
+
     // Definiere Server Adress-Familie
         struct sockaddr_in server_address;
         server_address.sin_family = AF_INET;            //Adress-Familie
@@ -263,8 +269,8 @@ int main(){
         struct client connectedClients[35];
     // TODO - THIS SHOULD MAKE THE FIRST ENTRY TO OUR STRUCT... but it doesn't...
         printf("My IP address is: %s\n", inet_ntoa(server_address.sin_addr));
-        //snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),inet_ntoa(server_address.sin_addr));
-        //connectedClients[0].isNotEmpty = 1;
+        snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),(char*) inet_ntoa(server_address.sin_addr));
+        connectedClients[0].isNotEmpty = 1;
 
     // listen to conections
         listen(server_socket, 5);
@@ -275,31 +281,23 @@ int main(){
         socklen_t client_len=sizeof(struct sockaddr_in);
 
     // Lege Key fuer Shared Memory TODO MSG SCHLEIFE ALS SHARED MEMORY
-        
-		int shmid;
-		key_t key;
-		char *shm;
-		char *s;
-		
-		key=0000;
-		
-		shmid= shmget(key, SHSIZE, IPC_CREAT | 0666);
-		if (shmget < 0) {
-			perror("shmget isn't working");
-			exit(1);
-		}
-		shm = shmat (shmid, NULL, 0);
-		
-		if (shm == (char *) -) {
-			perror ("shmat isn't working'");
-			exit(1);
-		}
-		
-		memcpy (shm, /*Message Queue oder LOG*/, /*Number of Characters*/);
-		
-		s= shm;
 
+      //InItIaLiZe ThE MeSsAgEqUeUe
+          key_t key;
+          int feeder;
+          key = ftok("something", 65);
+          feeder = msgget(key, IPC_CREAT);
+      //Putin shared MEMORY
+          key_t shkey = ftok("sollthing",65);
+          int shid = shmget(shkey,sizeof(feeder),IPC_CREAT|0777);
+          feeder = shmat(shid,(void*)0,0);
 
+      //first message?!?!
+          // int i = 0;
+          // message neueNachricht;
+          // neueNachricht.mstype = sizeof(connectedClients[i]);
+          // neueNachricht.content = getTemperature;
+          // msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
 // First Fork: Mainflow and Sensorenwarteschlange
     // pid equals Process ID Filedesc indicates Process
         int pid;
@@ -453,6 +451,7 @@ int main(){
                                 else if (pid6 == 0)          // CHILD PROCESS - MESSAGE SENDEN AN CLIENT
                                 {
                                     //TODO GIVE THE CLIENT HIS MESSAGES FROM QUEUE
+                                    //Check which Message is mine by Type(Key) then send
                                 }
                             }
                         }
@@ -478,7 +477,6 @@ int main(){
                     else if (pid3 > 0)           // PARENT PROCESS - CONNECT BEFEHL
                     {
                         //TODO  Just the normal stuff like in the other fork
-
                     }
                     else if (pid3 == 0)          // CHILD PROCESS - FUER JEDEN NEUEN VERBUNDENEN SERVER ERSTELLE DIESEN FORK
                     {
@@ -489,8 +487,45 @@ int main(){
             else if (pid == 0)          // CHILD PROCESS - FEED THE QUEUE WITH SENSOR DATA FOR EACH CONNECTED CLIENT
             {
                 //TODO SENSOREN NACHRICHTEN-WARTE-SCHLANGE & SCHREIBE LOG (MEINE) & PACKE EINE IN LCD QUEUE
+                /* MESSAGE QUEUE BEFUELLEN
+                  LOOP check for Changes -> DO alle 10 sek.
+                  IF Noticed Changes --> Neue Nachricht in die Message Queue mit dem Typ (Key des verbundenen Clients)
+                  Nur dieser Client kann die dann später lesen.
+                */
+                connectedClients[0].meineSensorwerte.minTemp=getTempre(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.akTemp=getTempre(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.maxTemp=getTempre(TEMPHUMPORT);
+
+                connectedClients[0].meineSensorwerte.minHum=getHumidity(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.akHum=getHumidity(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.maxHum=getHumidity(TEMPHUMPORT);
+
+                connectedClients[0].meineSensorwerte.minDB=getGerausch(SOUNDPORT);
+                connectedClients[0].meineSensorwerte.akDB=getGerausch(SOUNDPORT);
+                connectedClients[0].meineSensorwerte.maxDB=getGerausch(SOUNDPORT);
+
+                connectedClients[0].meineSensorwerte.minWater=getWasserkontakt(MOISTUREPORT);
+                connectedClients[0].meineSensorwerte.akWater=getWasserkontakt(MOISTUREPORT);
+                connectedClients[0].meineSensorwerte.maxWater=getWasserkontakt(MOISTUREPORT);
+
+                connectedClients[0].meineSensorwerte.motion=getBewegung(MOTIONPORT);
+
+                connectedClients[0].meineSensorwerte.colision=getColision(COLISIONPORT);
+                while (1) {
+                  if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      neueNachricht.content = getTempre(TEMPHUMPORT); //Nachricht schoen machen
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                }
             }
-    
+
     // close Funktion
         close(server_socket);
     // Return 0 for the lols
