@@ -244,7 +244,7 @@ int main(){
         struct sockaddr_in server_address;
         server_address.sin_family = AF_INET;            //Adress-Familie
         server_address.sin_port = htons(5678);          //Portnummer
-        server_address.sin_addr.s_addr = INADDR_ANY;    //Vlt noch ändern in IP Adresse
+        server_address.sin_addr.s_addr = INADDR_ANY;    //Vlt noch aendern in IP Adresse
 
     // Port Re-Use
         int option = 1;
@@ -252,9 +252,9 @@ int main(){
 
     // bind den socket zu unser IP und port
         if ((bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address))) <0) {
-            perror("Error: unable to bind\n");          // Wenn bind fehlschlägt gibt es eine Fehlermeldug.
+            perror("Error: unable to bind\n");          // Wenn bind fehlschlaegt gibt es eine Fehlermeldug.
             setLCDTextmitRGB("FATAL ERROR :(",HIGHPRIO);
-        } else{ puts("Bind erfolgreich.\n");            // Sonst Bestätigung
+        } else{ puts("Bind erfolgreich.\n");            // Sonst Bestaetigung
             // READY FOR CLIENTS
             setLCDTextmitRGB("I BIM READY :)",MIDDLEPRIO);
         }
@@ -266,7 +266,7 @@ int main(){
         //snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),inet_ntoa(server_address.sin_addr));
         //connectedClients[0].isNotEmpty = 1;
 
-    // isten to conections
+    // listen to conections
         listen(server_socket, 5);
         puts("Warten auf verbindung...\n");
 
@@ -444,7 +444,7 @@ int main(){
                 else if (pid2 == 0)          // CHILD PROCESS - SERVER-TURNS_TO_BE_CLIENT SIDE
                 {
                 // Third Fork: CONNECT BEFEHL UND
-                    //TODO  CONNECT BEFEHL & IF SUCSESSFUL MAKE A NEW FORK
+                    //TODO  CONNECT BEFEHL & IF SUCESSFUL MAKE A NEW FORK
                     // pid equals Process ID Filedesc indicates Process
                     int pid3;
                     // CREATE FORK
