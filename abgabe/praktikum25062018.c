@@ -76,6 +76,7 @@
     float getFeuchtigkeit(int pport){//Sensor an digital Port D8 anschließen
         float humidity = 0;
         //init();
+        int port = pport;
         pinMode(port, INPUT);
         getHumidity(&humidity, port);
         return humidity;
@@ -345,9 +346,12 @@ int main(){
                         }
                     // PRESS E AND SEND TO BREAK WHILE
                     } else if (strcmp(args[0], "E") == 0) {
-                        snprintf(buf, sizeof buf, "R.I.P. in Piece, User %d\n", counter);
+                        snprintf(buf, sizeof buf, "BYE BYE, User %d\n", counter);
                         send (fileDesc, buf, strlen(buf), 0);
                         running = 0;
+                        // IF THE CHECKER-WHILE BREAKS - THROW END OF INNER WHILE
+                        close(fileDesc);
+                        printf("VERBINDUNG GESCHLOSSEN");
                         break;
                     // THROW ERROR IF FIRST WORD IS UNKNOWN
                     } else {
@@ -358,6 +362,7 @@ int main(){
                 }
                 // IF THE CHECKER-WHILE BREAKS - THROW END OF INNER WHILE
                 close(fileDesc);
+                printf("VERBINDUNG GESCHLOSSEN\n\n");
                 // IF INNER-WHILE BREAKS - TROW OUTER BREAK
                 break;
                 
