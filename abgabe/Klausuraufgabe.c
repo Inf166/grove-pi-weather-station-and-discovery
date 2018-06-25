@@ -315,7 +315,7 @@ int main(){
     // Raspberry Sensoren working
     init();
     connectLCD();
-        setLCDTextmitRGB("Tadaaa",LOWPRIO);
+    //setLCDTextmitRGB("Tadaaa",LOWPRIO);
     //Servershit incoming
         //Erstelle Server Socket
         int server_socket;
@@ -455,7 +455,7 @@ int main(){
                 }
                 else if (pid > 0) //Parentprozess nach dem FORK //TODO also hier?
                 {
-                    close(fileDesc);
+                    //close(fileDesc);
                     counter++;
                     char buf[100];
                     printf("Hier läuft der Parentprozess\n");
