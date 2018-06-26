@@ -270,7 +270,7 @@ int main(){
     // TODO - THIS SHOULD MAKE THE FIRST ENTRY TO OUR STRUCT... but it doesn't...
         printf("My IP address is: %s\n", inet_ntoa(server_address.sin_addr));
         snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),(char*) inet_ntoa(server_address.sin_addr));
-        connectedClients[0].isNotEmpty = 1;
+        connectedClients[j].isNotEmpty = 1;
 
     // listen to conections
         listen(server_socket, 5);
@@ -492,30 +492,33 @@ int main(){
                   IF Noticed Changes --> Neue Nachricht in die Message Queue mit dem Typ (Key des verbundenen Clients)
                   Nur dieser Client kann die dann spaeter lesen.
                 */
-                connectedClients[0].meineSensorwerte.minTemp=getTempre(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.akTemp=getTempre(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.maxTemp=getTempre(TEMPHUMPORT);
+                
+                for (int j=0; j< sizeof(connectedClients); j++) {
+				
+                connectedClients[j].meineSensorwerte.minTemp=getTempre(TEMPHUMPORT);
+                connectedClients[j].meineSensorwerte.akTemp=getTempre(TEMPHUMPORT);
+                connectedClients[j].meineSensorwerte.maxTemp=getTempre(TEMPHUMPORT);
 
-                connectedClients[0].meineSensorwerte.minHum=getHumidity(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.akHum=getHumidity(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.maxHum=getHumidity(TEMPHUMPORT);
+                connectedClients[j].meineSensorwerte.minHum=getHumidity(TEMPHUMPORT);
+                connectedClients[j].meineSensorwerte.akHum=getHumidity(TEMPHUMPORT);
+                connectedClients[j].meineSensorwerte.maxHum=getHumidity(TEMPHUMPORT);
 
-                connectedClients[0].meineSensorwerte.minDB=getGerausch(SOUNDPORT);
-                connectedClients[0].meineSensorwerte.akDB=getGerausch(SOUNDPORT);
-                connectedClients[0].meineSensorwerte.maxDB=getGerausch(SOUNDPORT);
+                connectedClients[j].meineSensorwerte.minDB=getGerausch(SOUNDPORT);
+                connectedClients[j].meineSensorwerte.akDB=getGerausch(SOUNDPORT);
+                connectedClients[j].meineSensorwerte.maxDB=getGerausch(SOUNDPORT);
 
-                connectedClients[0].meineSensorwerte.minWater=getWasserkontakt(MOISTUREPORT);
-                connectedClients[0].meineSensorwerte.akWater=getWasserkontakt(MOISTUREPORT);
-                connectedClients[0].meineSensorwerte.maxWater=getWasserkontakt(MOISTUREPORT);
+                connectedClients[j].meineSensorwerte.minWater=getWasserkontakt(MOISTUREPORT);
+                connectedClients[j].meineSensorwerte.akWater=getWasserkontakt(MOISTUREPORT);
+                connectedClients[j].meineSensorwerte.maxWater=getWasserkontakt(MOISTUREPORT);
 
-                connectedClients[0].meineSensorwerte.motion=getBewegung(MOTIONPORT);
+                connectedClients[j].meineSensorwerte.motion=getBewegung(MOTIONPORT);
 
-                connectedClients[0].meineSensorwerte.colision=getColision(COLISIONPORT);
+                connectedClients[j].meineSensorwerte.colision=getColision(COLISIONPORT);
                 
                 
 				//Temperatur
 				while (1) {
-                  if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
+                  if(connectedClients[j].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -523,7 +526,7 @@ int main(){
                       
                       //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
                       
-                      sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "TEMPERATUR", connectedClients[0].meineSensorwerte.minHum, getHumidity(TEMPHUMPORT), connectedClients[0].meineSensorwerte.maxHum);
+                      sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "TEMPERATUR", connectedClients[j].meineSensorwerte.minHum, getHumidity(TEMPHUMPORT), connectedClients[j].meineSensorwerte.maxHum);
                       
                       msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                       i++;
@@ -534,7 +537,7 @@ int main(){
                                
                 //Feuchtigkeit
             	while (1) {
-               	  if(connectedClients[0].meineSensorwerte.akTemp != getHumidity(TEMPHUMPORT)){
+               	  if(connectedClients[j].meineSensorwerte.akTemp != getHumidity(TEMPHUMPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -542,7 +545,7 @@ int main(){
                       
                       //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
                       
-                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "FEUCHTIGKEIT", connectedClients[0].meineSensorwerte.minTemp, getTempre(TEMPHUMPORT), connectedClients[0].meineSensorwerte.maxTemp);
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "FEUCHTIGKEIT", connectedClients[j].meineSensorwerte.minTemp, getTempre(TEMPHUMPORT), connectedClients[j].meineSensorwerte.maxTemp);
                       
                       msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                       i++;
@@ -553,7 +556,7 @@ int main(){
                
                //Geraeusch
 				while (1) {
-                  if(connectedClients[0].meineSensorwerte.akTemp != getGerausch(SOUNDPORT)){
+                  if(connectedClients[j].meineSensorwerte.akTemp != getGerausch(SOUNDPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -561,7 +564,7 @@ int main(){
                       
                       //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
                       
-                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "GERAEUSCH", connectedClients[0].meineSensorwerte.minDB, getGerausch(SOUNDPORT), connectedClients[0].meineSensorwerte.maxDB);
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "GERAEUSCH", connectedClients[j].meineSensorwerte.minDB, getGerausch(SOUNDPORT), connectedClients[j].meineSensorwerte.maxDB);
                       
                       msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                       i++;
@@ -572,7 +575,7 @@ int main(){
                 
             	//Wasserkontakt
             	while (1) {
-                  if(connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
+                  if(connectedClients[j].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -580,7 +583,7 @@ int main(){
                       
                       //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
                       
-                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %d, derzeitig: %d, max: %d ]", "255.255.255", "WASSERKONTAKT", connectedClients[0].meineSensorwerte.minWater, getWasserkontakt(MOISTUREPORT), connectedClients[0].meineSensorwerte.maxWater);
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %d, derzeitig: %d, max: %d ]", "255.255.255", "WASSERKONTAKT", connectedClients[j].meineSensorwerte.minWater, getWasserkontakt(MOISTUREPORT), connectedClients[j].meineSensorwerte.maxWater);
                       
                       msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                       i++;
@@ -591,7 +594,7 @@ int main(){
                 
             	//Bewegung
            		while (1) {
-                  if(connectedClients[0].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
+                  if(connectedClients[j].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -610,7 +613,7 @@ int main(){
                 
             	//Erschuetterung   
            		while (1) {
-                  if(connectedClients[0].meineSensorwerte.motion != getColision(COLISIONPORT)){
+                  if(connectedClients[j].meineSensorwerte.motion != getColision(COLISIONPORT)){
                     int i = 0;
                     while(connectedClients[i].isNotEmpty){
                       message neueNachricht;
@@ -626,7 +629,8 @@ int main(){
                   }
                   pi_sleep(10000);
                 }
-            }
+       		 }
+		}
 
     // close Funktion
         close(server_socket);
