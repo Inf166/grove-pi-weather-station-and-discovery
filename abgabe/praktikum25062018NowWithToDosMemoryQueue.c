@@ -513,7 +513,7 @@ int main(){
                 connectedClients[0].meineSensorwerte.colision=getColision(COLISIONPORT);
                 
                 
-				
+				//Temperatur
 				while (1) {
                   if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
                     int i = 0;
@@ -523,8 +523,64 @@ int main(){
                       
                       //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
                       
-                      neueNachricht.content = getTempre(TEMPHUMPORT); //Nachricht schoen machen
-                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %d, derzeitig: %d, max: %d ]", "255.255.255", "TEMPERATUR", connectedClients[0].meineSensorwerte.minTemp, getTempre(TEMPHUMPORT), connectedClients[0].meineSensorwerte.maxTemp);
+                      sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "TEMPERATUR", connectedClients[0].meineSensorwerte.minHum, getHumidity(TEMPHUMPORT), connectedClients[0].meineSensorwerte.maxHum);
+                      
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                }
+                               
+                //Feuchtigkeit
+            	while (1) {
+               	  if(connectedClients[0].meineSensorwerte.akTemp != getHumidity(TEMPHUMPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      
+                      //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
+                      
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "FEUCHTIGKEIT", connectedClients[0].meineSensorwerte.minTemp, getTempre(TEMPHUMPORT), connectedClients[0].meineSensorwerte.maxTemp);
+                      
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                }
+               
+               //Geraeusch
+				while (1) {
+                  if(connectedClients[0].meineSensorwerte.akTemp != getGerausch(SOUNDPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      
+                      //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
+                      
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %0.2f, derzeitig: %0.2f, max: %0.2f ]", "255.255.255", "GERAEUSCH", connectedClients[0].meineSensorwerte.minDB, getGerausch(SOUNDPORT), connectedClients[0].meineSensorwerte.maxDB);
+                      
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                } 
+                
+            	//Wasserkontakt
+            	while (1) {
+                  if(connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      
+                      //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
+                      
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: min: %d, derzeitig: %d, max: %d ]", "255.255.255", "WASSERKONTAKT", connectedClients[0].meineSensorwerte.minWater, getWasserkontakt(MOISTUREPORT), connectedClients[0].meineSensorwerte.maxWater);
                       
                       msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                       i++;
@@ -533,7 +589,43 @@ int main(){
                   pi_sleep(10000);
                 }
                 
+            	//Bewegung
+           		while (1) {
+                  if(connectedClients[0].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      
+                      //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
+                      
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: %d ]", "255.255.255", "BEWEGUNG", getBewegung(MOTIONPORT));
+                      
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                }
                 
+            	//Erschuetterung   
+           		while (1) {
+                  if(connectedClients[0].meineSensorwerte.motion != getColision(COLISIONPORT)){
+                    int i = 0;
+                    while(connectedClients[i].isNotEmpty){
+                      message neueNachricht;
+                      neueNachricht.mstype = sizeof(connectedClients[i]);
+                      
+                      //<255.255.255> [ Sensor: TEMP: min: xx, derzeitig: xx, max: xx ]
+                      
+                    	sprintf(neueNachricht.content, "<%s> [ Sensor: %s: %d ]", "255.255.255", "ERSCHUETTERUNG", getColision(COLISIONPORT));
+                      
+                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                      i++;
+                    }
+                  }
+                  pi_sleep(10000);
+                }
             }
 
     // close Funktion
