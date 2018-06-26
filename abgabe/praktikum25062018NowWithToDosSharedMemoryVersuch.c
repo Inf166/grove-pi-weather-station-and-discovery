@@ -17,6 +17,8 @@
 #include <sys/msg.h>
 //INCLUDE MY SPAGGET
 #include <sys/shm.h>
+//INCLUDE SEMAPHORE
+#include <sys/sem.h>
 //Define In and Output
 #define INPUT 0
 #define OUTPUT 1
@@ -64,6 +66,11 @@
        char ipdesclient[255];
        int isNotEmpty;
        struct sensorwerte meineSensorwerte;
+    };
+    struct sembuf {
+      short sem_num;  /* semaphore number: 0 = first */
+      short sem_op;   /* semaphore operation */
+      short sem_flg;  /* operation flags */
     };
 
     //Sensoren InItIaLiZe
@@ -292,12 +299,28 @@ int main(){
           int shid = shmget(shkey,sizeof(feeder),IPC_CREAT|0777);
           feeder = shmat(shid,(void*)0,0);
 
+      //InItIaLiZe ThE lCdMeSsAgEqUeUe
+          key_t key2;
+          int lcdfeeder;
+          key2 = ftok("mssomething", 65);
+          lcdfeeder = msgget(key2, IPC_CREAT);
+      //Putin shared LCDMEMORY
+          key_t mskey = ftok("msoslllol",65);
+          int shit = shmget(mskey,sizeof(lcdfeeder),IPC_CREAT|0777);
+          lcdfeeder = shmat(shit,(void*)0,0);
+
+      //CREATE SEMAPHORE
+      int semID;
+      struct sembuf sema;
+      semID = semget(2404, 1, IPC_CREAT | 0666);
       //first message?!?!
           // int i = 0;
           // message neueNachricht;
           // neueNachricht.mstype = sizeof(connectedClients[i]);
           // neueNachricht.content = getTemperature;
           // msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+
+
 // First Fork: Mainflow and Sensorenwarteschlange
     // pid equals Process ID Filedesc indicates Process
         int pid;
@@ -450,15 +473,74 @@ int main(){
                                 }
                                 else if (pid6 == 0)          // CHILD PROCESS - MESSAGE SENDEN AN CLIENT
                                 {
-                                    //TODO GIVE THE CLIENT HIS MESSAGES FROM QUEUE
-                                    //Check which Message is mine by Type(Key) then send
+                                  //TODO GIVE THE CLIENT HIS MESSAGES FROM QUEUE
+                                  //Check which Message is mine by Type(Key) then send
+                                  while (1) {
+                                    if (semID >= 0) {
+                                      /* Bereite die Semaphore vor und starte */
+                                      sema.sem_num = 0;
+                                      sema.sem_flg = SEM_UNDO;
+                                      sema.sem_op  = -1;
+                                      if (-1==semop(semID, &sema, 1)) {
+                                          /* Fehler */
+                                          perror("semop");
+                                      }
+                                      int tag;
+                                      tag=msgrcv(feeder,&nachricht,80,0,0);
+                                      if (tag < 0) {
+                                        perror( strerror(errno) );
+                                        printf("msgrcv failed, rc=%d\n", tag);
+                                        exit(1);
+                                      }
+                                      printf("%s\n", nachricht.content);
+                                      snprintf(buf, sizeof buf, "%s\n", nachricht.content);
+                                      send (fileDesc, buf, strlen(buf), 0);
+                                      /* Gebe Sem wieder frei */
+                                      sema.sem_op  = 1;
+                                      if (-1==semop(semID, &sema, 1)) {
+                                          /* Fehler */
+                                          perror("semop");
+                                      }
+
+                                    } else {
+                                        perror("semget");
+                                    }
+                                  }
                                 }
                             }
                         }
                     }
                     else if (pid4 == 0)          // CHILD PROCESS - NACHRICHTENWARTESCHLANGE FUER LCD
                     {
-                        //TODO MESSAGEQUEUE LCD & CHECK FOR A MESSAGE FOR LCD & ZEIGE AN AUF LCD
+                        while (1) {
+                          if (semID >= 0) {
+                            /* Bereite die Semaphore vor und starte */
+                            sema.sem_num = 0;
+                            sema.sem_flg = SEM_UNDO;
+                            sema.sem_op  = -1;
+                            if (-1==semop(semID, &sema, 1)) {
+                                /* Fehler */
+                                perror("semop");
+                            }
+                            int tag;
+                            tag=msgrcv(lcdfeeder,&nachricht,80,0,0);
+                            if (tag < 0) {
+                              perror( strerror(errno) );
+                              printf("msgrcv failed, rc=%d\n", tag);
+                              exit(1);
+                            }
+                            printf("%s\n", nachricht.content);
+                            /* Gebe Sem wieder frei */
+                            sema.sem_op  = 1;
+                            if (-1==semop(semID, &sema, 1)) {
+                                /* Fehler */
+                                perror("semop");
+                            }
+
+                          } else {
+                              perror("semget");
+                          }
+                        }
                     }
                 }
                 else if (pid2 == 0)          // CHILD PROCESS - SERVER-TURNS_TO_BE_CLIENT SIDE
@@ -480,18 +562,13 @@ int main(){
                     }
                     else if (pid3 == 0)          // CHILD PROCESS - FUER JEDEN NEUEN VERBUNDENEN SERVER ERSTELLE DIESEN FORK
                     {
-                        //TODO FRAGE ANDERE CLIENTS IHRER WERTE AB & SCHREIBE LOG (IHRE)
+                        //TODO FRAGE ANDERE CLIENTS IHRER WERTE AB & SCHREIBE LOG (IHRE) // Empfange Daten
                     }
                 }
             }
             else if (pid == 0)          // CHILD PROCESS - FEED THE QUEUE WITH SENSOR DATA FOR EACH CONNECTED CLIENT
             {
-                //TODO SENSOREN NACHRICHTEN-WARTE-SCHLANGE & SCHREIBE LOG (MEINE) & PACKE EINE IN LCD QUEUE
-                /* MESSAGE QUEUE BEFUELLEN
-                  LOOP check for Changes -> DO alle 10 sek.
-                  IF Noticed Changes --> Neue Nachricht in die Message Queue mit dem Typ (Key des verbundenen Clients)
-                  Nur dieser Client kann die dann später lesen.
-                */
+                //Ausgangswerte einmalig festlegen
                 connectedClients[0].meineSensorwerte.minTemp=getTempre(TEMPHUMPORT);
                 connectedClients[0].meineSensorwerte.akTemp=getTempre(TEMPHUMPORT);
                 connectedClients[0].meineSensorwerte.maxTemp=getTempre(TEMPHUMPORT);
@@ -511,18 +588,112 @@ int main(){
                 connectedClients[0].meineSensorwerte.motion=getBewegung(MOTIONPORT);
 
                 connectedClients[0].meineSensorwerte.colision=getColision(COLISIONPORT);
+
                 while (1) {
-                  if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
-                    int i = 0;
-                    while(connectedClients[i].isNotEmpty){
-                      message neueNachricht;
-                      neueNachricht.mstype = sizeof(connectedClients[i]);
-                      neueNachricht.content = getTempre(TEMPHUMPORT); //Nachricht schoen machen
-                      msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
-                      i++;
+                  if (semID >= 0) {
+                    /* Bereite die Semaphore vor und starte */
+                    sema.sem_num = 0;
+                    sema.sem_flg = SEM_UNDO;
+                    sema.sem_op  = -1;
+                    if (-1==semop(semID, &sema, 1)) {
+                        /* Fehler */
+                        perror("semop");
                     }
-                  }
+                    if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Temperatur: %f]\n",connectedClients[0].ipdesclient,getTempre(TEMPHUMPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Temperatur: %f]\n",connectedClients[0].ipdesclient,getTempre(TEMPHUMPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    if(connectedClients[0].meineSensorwerte.akHum != getHumidity(TEMPHUMPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Humidity: %f]\n",connectedClients[0].ipdesclient,getHumidity(TEMPHUMPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Humidity: %f]\n",connectedClients[0].ipdesclient,getHumidity(TEMPHUMPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    if(connectedClients[0].meineSensorwerte.akDB != getGerausch(SOUNDPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Sound: %d]\n",connectedClients[0].ipdesclient,getGerausch(SOUNDPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Sound: %d]\n",connectedClients[0].ipdesclient,getGerausch(SOUNDPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    if(connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Waterdetected: %d]\n",connectedClients[0].ipdesclient,getWasserkontakt(MOISTUREPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Waterdetected: %d]\n",connectedClients[0].ipdesclient,getWasserkontakt(MOISTUREPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    if(connectedClients[0].meineSensorwerte.colision != getColision(COLISIONPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Colisiondetected: %d]\n",connectedClients[0].ipdesclient,getColision(COLISIONPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Colisiondetected: %d]\n",connectedClients[0].ipdesclient,getColision(COLISIONPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    if(connectedClients[0].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
+                      int i = 0;
+                      while(connectedClients[i].isNotEmpty){
+                        message neueNachricht;
+                        neueNachricht.mstype = sizeof(connectedClients[i]);
+                        sprintf(neueNachricht.content,"<%s>[Motiondetected: %d]\n",connectedClients[0].ipdesclient,getBewegung(MOTIONPORT));
+                        msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
+                        i++;
+                      }
+                      message neueLCDNachricht;
+                      neueLCDNachricht.mstype = 1;
+                      sprintf(neueLCDNachricht.content,"<%s>[Motiondetected: %d]\n",connectedClients[0].ipdesclient,getBewegung(MOTIONPORT));
+                      msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
+                    }
+                    /* Gebe Sem wieder frei */
+                    sema.sem_op  = 1;
+                    if (-1==semop(semID, &sema, 1)) {
+                        /* Fehler */
+                        perror("semop");
+                    }
                   pi_sleep(10000);
+                  } else {
+                      perror("semget");
+                  }
+
                 }
             }
 
