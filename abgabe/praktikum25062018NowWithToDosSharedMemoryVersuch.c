@@ -395,6 +395,8 @@ int main(){
                             // Sixth Fork: CONNECT BEFEHL UND
                                 // pid equals Process ID Filedesc indicates Process
                                 int pid6;
+                                // ADD +1 to Counter-Var
+                                counter++;
                                 // CREATE FORK
                                 if ((pid6 = fork()) <0)      // ERROR OF FORK - PLEASE THROW ERROR
                                 {
@@ -404,8 +406,6 @@ int main(){
                                 }
                                 else if (pid6 > 0)           // PARENT PROCESS - SERVER RESPONSE
                                 {
-                                    // ADD +1 to Counter-Var
-                                    counter++;
                                     // Create a Buffer-Var
                                     char buf[100];
                                     // SEND Welcome
@@ -473,8 +473,6 @@ int main(){
                                 }
                                 else if (pid6 == 0)          // CHILD PROCESS - MESSAGE SENDEN AN CLIENT
                                 {
-                                  //TODO GIVE THE CLIENT HIS MESSAGES FROM QUEUE
-                                  //Check which Message is mine by Type(Key) then send
                                   while (1) {
                                     if (semID >= 0) {
                                       /* Bereite die Semaphore vor und starte */
@@ -486,15 +484,17 @@ int main(){
                                           perror("semop");
                                       }
                                       int tag;
-                                      tag=msgrcv(feeder,&nachricht,80,0,0);
-                                      if (tag < 0) {
-                                        perror( strerror(errno) );
-                                        printf("msgrcv failed, rc=%d\n", tag);
-                                        exit(1);
+                                      while(tag>0){
+                                        tag=msgrcv(feeder,&nachricht,sizeof(&nachricht),sizeof(connectedClients[counter]),0);
+                                        if (tag < 0) {
+                                          perror( strerror(errno) );
+                                          printf("msgrcv failed, rc=%d\n", tag);
+                                          exit(1);
+                                        }
+                                        printf("%s\n", nachricht.content);
+                                        snprintf(buf, sizeof buf, "%s\n", nachricht.content);
+                                        send (fileDesc, buf, strlen(buf), 0);
                                       }
-                                      printf("%s\n", nachricht.content);
-                                      snprintf(buf, sizeof buf, "%s\n", nachricht.content);
-                                      send (fileDesc, buf, strlen(buf), 0);
                                       /* Gebe Sem wieder frei */
                                       sema.sem_op  = 1;
                                       if (-1==semop(semID, &sema, 1)) {
@@ -523,20 +523,45 @@ int main(){
                                 perror("semop");
                             }
                             int tag;
-                            tag=msgrcv(lcdfeeder,&nachricht,80,0,0);
+                            while(tag > 0){
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)HIGHPRIO),0);
                             if (tag < 0) {
                               perror( strerror(errno) );
                               printf("msgrcv failed, rc=%d\n", tag);
                               exit(1);
                             }
                             printf("%s\n", nachricht.content);
+                            setLCDTextmitRGB(nachricht.content,(int)nachricht.mstype);
+                            pi_sleep(1000); //Alternative für die Lesbarkeit
+                            }
+                            while(tag > 0){
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)MIDDLEPRIO),0);
+                            if (tag < 0) {
+                              perror( strerror(errno) );
+                              printf("msgrcv failed, rc=%d\n", tag);
+                              exit(1);
+                            }
+                            printf("%s\n", nachricht.content);
+                            setLCDTextmitRGB(nachricht.content,(int)nachricht.mstype);
+                            pi_sleep(1000); //Alternative für die Lesbarkeit
+                            }
+                            while(tag > 0){
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)LOWPRIO),0);
+                            if (tag < 0) {
+                              perror( strerror(errno) );
+                              printf("msgrcv failed, rc=%d\n", tag);
+                              exit(1);
+                            }
+                            printf("%s\n", nachricht.content);
+                            setLCDTextmitRGB(nachricht.content,(int)nachricht.mstype);
+                            pi_sleep(1000); //Alternative für die Lesbarkeit
+                            }
                             /* Gebe Sem wieder frei */
                             sema.sem_op  = 1;
                             if (-1==semop(semID, &sema, 1)) {
                                 /* Fehler */
                                 perror("semop");
                             }
-
                           } else {
                               perror("semget");
                           }
@@ -547,22 +572,106 @@ int main(){
                 {
                 // Third Fork: CONNECT BEFEHL UND
                     //TODO  CONNECT BEFEHL & IF SUCESSFUL MAKE A NEW FORK
-                    // pid equals Process ID Filedesc indicates Process
-                    int pid3;
-                    // CREATE FORK
-                    if ((pid3 = fork()) <0)      // ERROR OF FORK - PLEASE THROW ERROR
-                    {
-                        // Throw Error
-                        perror("Error: Fork Error - please restart the Programm\n");
-                        setLCDTextmitRGB("Fork Error :(",HIGHPRIO);
-                    }
-                    else if (pid3 > 0)           // PARENT PROCESS - CONNECT BEFEHL
-                    {
-                        //TODO  Just the normal stuff like in the other fork
-                    }
-                    else if (pid3 == 0)          // CHILD PROCESS - FUER JEDEN NEUEN VERBUNDENEN SERVER ERSTELLE DIESEN FORK
-                    {
-                        //TODO FRAGE ANDERE CLIENTS IHRER WERTE AB & SCHREIBE LOG (IHRE) // Empfange Daten
+                    char eingabe[256];
+                    char *args[3];
+                    printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
+                    scanf("%s", &eingabe);
+                    strtoken(eingabe,args,3);
+                    if(strcmp(args[0], "CONNECT") == 0){
+                        int lengthundso = sizeof(args[1]);
+                        char ip[lengthundso] = args[1];
+                        int lengthundso2 = sizeof(args[2]);
+                        char port[lengthundso2] = args[2];
+                        // Wir machen einen Socket:
+                        int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
+                        client_socket = socket(AF_INET, SOCK_STREAM, 0);
+                        printf("Lege neuen Socket für andere Server an\n");
+                        //Genauere Adresse fuer den Socket
+                        struct sockaddr_in serv_ad;
+                        serv_ad.sin_family = AF_INET;           //Adress-Familie
+                        serv_ad.sin_port = htons(port);         //Portnummer
+                        serv_ad.sin_addr.s_addr = inet_addr(ip);   //Vlt noch ändern in IP Adresse
+                        //     Typ              Cast zur Adresse              Länge der Adresse
+                        int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
+                        //Auffangen von Connection error
+                        if(conect_status == -1){
+                            printf("Verbindung fehlgeschlagen...\n\n");
+                        }
+                        if(conect_status == 0){
+                            printf("Verbindung hat geklappt...\n\n");
+                            int runner = 0;
+                            while(connectedClients[runner].isNotEmpty){runner++;}
+                            connectedClients[runner].isNotEmpty =1;
+                            connectedClients[runner].ipdesclient = ip;
+                            // pid equals Process ID Filedesc indicates Process
+                            int pid3;
+                            // CREATE FORK
+                            if ((pid3 = fork()) <0)      // ERROR OF FORK - PLEASE THROW ERROR
+                            {
+                                // Throw Error
+                                perror("Error: Fork Error - please restart the Programm\n");
+                                setLCDTextmitRGB("Fork Error :(",HIGHPRIO);
+                            }
+                            else if (pid3 > 0)           // PARENT PROCESS - CONNECT BEFEHL
+                            {
+                              char unsercmd[256];
+                              scanf("%s\n", unsercmd);
+                              send (client_socket, unsercmd, strlen(unsercmd), 0);
+                              //Empfangen von Daten
+                              char server_antwort[256];
+                              recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+                              //Ausgabe
+                              printf("Dateien empfangen: %s\n", server_antwort);
+                            }
+                            else if (pid3 == 0)          // CHILD PROCESS - FUER JEDEN NEUEN VERBUNDENEN SERVER ERSTELLE DIESEN FORK
+                            {
+                                while(1){
+                                  //Empfangen von Daten
+                                  char server_antwort[256];
+                                  recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+                                  char *informationen[2];
+                                  strtoken(server_antwort,informationen,2);
+                                  if(informationen[0]=="Temperatur"){
+                                    connectedClients[runner].meineSensorwerte.akTemp = (float) informationen[1];
+                                    if(connectedClients[runner].meineSensorwerte.minTemp>(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.minTemp = (float) informationen[1];
+                                    else if(connectedClients[runner].meineSensorwerte.maxTemp<(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.maxTemp = (float) informationen[1];
+
+                                  }
+                                  else if(informationen[0]=="Humidity"){
+                                    connectedClients[runner].meineSensorwerte.akHum = (float) informationen[1];
+                                    if(connectedClients[runner].meineSensorwerte.minHum>(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.minHum = (float) informationen[1];
+                                    else if(connectedClients[runner].meineSensorwerte.maxHum<(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.maxHum = (float) informationen[1];
+                                  }
+                                  else if(informationen[0]=="Sound"){
+                                    connectedClients[runner].meineSensorwerte.akDB = (float) informationen[1];
+                                    if(connectedClients[runner].meineSensorwerte.minDB>(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.minDB = (float) informationen[1];
+                                    else if(connectedClients[runner].meineSensorwerte.maxDB<(float) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.maxDB = (float) informationen[1];
+                                  }
+                                  else if(informationen[0]=="Waterdetected"){
+                                    connectedClients[runner].meineSensorwerte.akWater = (int) informationen[1];
+                                    if(connectedClients[runner].meineSensorwerte.minWater>(int) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.minWater = (int) informationen[1];
+                                    else if(connectedClients[runner].meineSensorwerte.maxWater<(int) informationen[1])
+                                      connectedClients[runner].meineSensorwerte.maxWater = (int) informationen[1];
+                                  }
+                                  else if(informationen[0]=="Motiondetected"){
+                                    connectedClients[runner].meineSensorwerte.motion = (int) informationen[1];
+                                  }
+                                  else if(informationen[0]=="Colisiondetected"){
+                                    connectedClients[runner].meineSensorwerte.colision = (int) informationen[1];
+                                  }
+                                  else {
+                                    //do nothing at all
+                                  }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -604,13 +713,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Temperatur: %f]\n",connectedClients[0].ipdesclient,getTempre(TEMPHUMPORT));
+                        sprintf(neueNachricht.content,"Temperatur %f\n",getTempre(TEMPHUMPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Temperatur: %f]\n",connectedClients[0].ipdesclient,getTempre(TEMPHUMPORT));
+                      neueLCDNachricht.mstype = (long) LOWPRIO;
+                      sprintf(neueLCDNachricht.content,"Temperatur %f\n",getTempre(TEMPHUMPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.akHum != getHumidity(TEMPHUMPORT)){
@@ -618,13 +727,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Humidity: %f]\n",connectedClients[0].ipdesclient,getHumidity(TEMPHUMPORT));
+                        sprintf(neueNachricht.content,"Humidity %f\n",getHumidity(TEMPHUMPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Humidity: %f]\n",connectedClients[0].ipdesclient,getHumidity(TEMPHUMPORT));
+                      neueLCDNachricht.mstype = (long) LOWPRIO;
+                      sprintf(neueLCDNachricht.content,"Humidity: %f\n",getHumidity(TEMPHUMPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.akDB != getGerausch(SOUNDPORT)){
@@ -632,13 +741,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Sound: %d]\n",connectedClients[0].ipdesclient,getGerausch(SOUNDPORT));
+                        sprintf(neueNachricht.content,"Sound: %f\n",getGerausch(SOUNDPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Sound: %d]\n",connectedClients[0].ipdesclient,getGerausch(SOUNDPORT));
+                      neueLCDNachricht.mstype = (long) LOWPRIO;
+                      sprintf(neueLCDNachricht.content,"Sound: %f\n",getGerausch(SOUNDPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
@@ -646,13 +755,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Waterdetected: %d]\n",connectedClients[0].ipdesclient,getWasserkontakt(MOISTUREPORT));
+                        sprintf(neueNachricht.content,"Waterdetected: %d\n"getWasserkontakt(MOISTUREPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Waterdetected: %d]\n",connectedClients[0].ipdesclient,getWasserkontakt(MOISTUREPORT));
+                      neueLCDNachricht.mstype = (long) HIGHPRIO;
+                      sprintf(neueLCDNachricht.content,"Waterdetected: %d\n",getWasserkontakt(MOISTUREPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.colision != getColision(COLISIONPORT)){
@@ -660,13 +769,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Colisiondetected: %d]\n",connectedClients[0].ipdesclient,getColision(COLISIONPORT));
+                        sprintf(neueNachricht.content,"Colisiondetected: %d\n",getColision(COLISIONPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Colisiondetected: %d]\n",connectedClients[0].ipdesclient,getColision(COLISIONPORT));
+                      neueLCDNachricht.mstype = (long) LOWPRIO;
+                      sprintf(neueLCDNachricht.content,"Colisiondetected: %d\n",getColision(COLISIONPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
@@ -674,13 +783,13 @@ int main(){
                       while(connectedClients[i].isNotEmpty){
                         message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"<%s>[Motiondetected: %d]\n",connectedClients[0].ipdesclient,getBewegung(MOTIONPORT));
+                        sprintf(neueNachricht.content,"Motiondetected: %d\n",getBewegung(MOTIONPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
                       message neueLCDNachricht;
-                      neueLCDNachricht.mstype = 1;
-                      sprintf(neueLCDNachricht.content,"<%s>[Motiondetected: %d]\n",connectedClients[0].ipdesclient,getBewegung(MOTIONPORT));
+                      neueLCDNachricht.mstype = (long) MIDDLEPRIO;
+                      sprintf(neueLCDNachricht.content,"Motiondetected: %d\n",getBewegung(MOTIONPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     /* Gebe Sem wieder frei */
