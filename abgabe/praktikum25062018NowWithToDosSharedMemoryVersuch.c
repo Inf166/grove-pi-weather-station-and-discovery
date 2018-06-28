@@ -67,11 +67,6 @@
        int isNotEmpty;
        struct sensorwerte meineSensorwerte;
     };
-    struct sembuf {
-      short sem_num;  /* semaphore number: 0 = first */
-      short sem_op;   /* semaphore operation */
-      short sem_flg;  /* operation flags */
-    };
 
     //Sensoren InItIaLiZe
     int getColision(int pport){
@@ -276,7 +271,7 @@ int main(){
         struct client connectedClients[35];
     // TODO - THIS SHOULD MAKE THE FIRST ENTRY TO OUR STRUCT... but it doesn't...
         printf("My IP address is: %s\n", inet_ntoa(server_address.sin_addr));
-        snprintf(connectedClients[0].ipdesclient[225] , sizeof(connectedClients[0].ipdesclient[225]),(char*) inet_ntoa(server_address.sin_addr));
+        snprintf(connectedClients[0].ipdesclient , sizeof(connectedClients[0].ipdesclient),(char*) inet_ntoa(server_address.sin_addr));
         connectedClients[0].isNotEmpty = 1;
 
     // listen to conections
@@ -297,7 +292,7 @@ int main(){
       //Putin shared MEMORY
           key_t shkey = ftok("sollthing",65);
           int shid = shmget(shkey,sizeof(feeder),IPC_CREAT|0777);
-          feeder = shmat(shid,(void*)0,0);
+          feeder = (int) shmat(shid,NULL,0); //kein plan
 
       //InItIaLiZe ThE lCdMeSsAgEqUeUe
           key_t key2;
@@ -307,7 +302,7 @@ int main(){
       //Putin shared LCDMEMORY
           key_t mskey = ftok("msoslllol",65);
           int shit = shmget(mskey,sizeof(lcdfeeder),IPC_CREAT|0777);
-          lcdfeeder = shmat(shit,(void*)0,0);
+          lcdfeeder = (int) shmat(shit,NULL,0);//kein plan
 
       //CREATE SEMAPHORE
       int semID;
@@ -427,25 +422,25 @@ int main(){
                                             if(strcmp(args[1], "TEMPERATURE") == 0){
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [TEMPERATURE: %f]\n", getTempre(TEMPHUMPORT));
                                                 send (fileDesc, buf, strlen(buf), 0);
-                                            } else if(strcmp(args[1], "HUMIDITY") == 0){
+                                            } else if(strcmp(args[1], "HUMIDITYURE") == 0){
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [HUMIDITY: %f]\n", getTempre(TEMPHUMPORT));
                                                 send (fileDesc, buf, strlen(buf), 0);
-                                            }else if(strcmp(args[1], "MOTION") == 0){
+                                            }else if(strcmp(args[1], "MOTIONONURE") == 0){
                                                 char* response;
                                                 if(getBewegung(MOTIONPORT)==1){ response = "DETECTED";}
                                                 else {response = "NONE";}
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [MOTION: %s]\n", response);
                                                 send (fileDesc, buf, strlen(buf), 0);
-                                            }else if(strcmp(args[1], "SOUND") == 0){
+                                            }else if(strcmp(args[1], "SOUNDNONURE") == 0){
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [SOUND: %d]\n", getGerausch(SOUNDPORT));
                                                 send (fileDesc, buf, strlen(buf), 0);
-                                            }else if(strcmp(args[1], "COLISION") == 0){
+                                            }else if(strcmp(args[1], "COLISIONURE") == 0){
                                                 char* response;
                                                 if(getColision(COLISIONPORT)==1){ response = "DETECTED";}
                                                 else {response = "NONE";}
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [COLISION: %f]\n", response);
                                                 send (fileDesc, buf, strlen(buf), 0);
-                                            }else if(strcmp(args[1], "MOISTURE") == 0){
+                                            }else if(strcmp(args[1], "MOISTUREURE") == 0){
                                                 snprintf(buf, sizeof buf, "<192.168.2.27> [MOISTURE: %d]\n", getWasserkontakt(MOISTUREPORT));
                                                 send (fileDesc, buf, strlen(buf), 0);
                                             }
@@ -460,9 +455,9 @@ int main(){
                                             break;
                                         // THROW ERROR IF FIRST WORD IS UNKNOWN
                                         } else {
-                                            char message [40]={0};
-                                            sprintf(message,"Fehlerhafte Eingabe.\n");
-                                            send (fileDesc, message, strlen(message), 0);
+                                            char errorlol [40]={0};
+                                            sprintf(errorlol,"Fehlerhafte Eingabe.\n");
+                                            send (fileDesc, errorlol, strlen(errorlol), 0);
                                         }
                                     }
                                     // IF THE CHECKER-WHILE BREAKS - THROW END OF INNER WHILE
@@ -484,7 +479,9 @@ int main(){
                                           perror("semop");
                                       }
                                       int tag;
+                                      struct message nachricht;
                                       while(tag>0){
+
                                         tag=msgrcv(feeder,&nachricht,sizeof(&nachricht),sizeof(connectedClients[counter]),0);
                                         if (tag < 0) {
                                           perror( strerror(errno) );
@@ -492,8 +489,7 @@ int main(){
                                           exit(1);
                                         }
                                         printf("%s\n", nachricht.content);
-                                        snprintf(buf, sizeof buf, "%s\n", nachricht.content);
-                                        send (fileDesc, buf, strlen(buf), 0);
+                                        send (fileDesc, nachricht.content, strlen(nachricht.content), 0);
                                       }
                                       /* Gebe Sem wieder frei */
                                       sema.sem_op  = 1;
@@ -523,8 +519,9 @@ int main(){
                                 perror("semop");
                             }
                             int tag;
+                            struct message nachricht;
                             while(tag > 0){
-                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)HIGHPRIO),0);
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)HIGHPRIO,0);
                             if (tag < 0) {
                               perror( strerror(errno) );
                               printf("msgrcv failed, rc=%d\n", tag);
@@ -535,7 +532,7 @@ int main(){
                             pi_sleep(1000); //Alternative für die Lesbarkeit
                             }
                             while(tag > 0){
-                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)MIDDLEPRIO),0);
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)MIDDLEPRIO,0);
                             if (tag < 0) {
                               perror( strerror(errno) );
                               printf("msgrcv failed, rc=%d\n", tag);
@@ -546,7 +543,7 @@ int main(){
                             pi_sleep(1000); //Alternative für die Lesbarkeit
                             }
                             while(tag > 0){
-                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)LOWPRIO),0);
+                            tag=msgrcv(lcdfeeder,&nachricht,sizeof(&nachricht),(long)LOWPRIO,0);
                             if (tag < 0) {
                               perror( strerror(errno) );
                               printf("msgrcv failed, rc=%d\n", tag);
@@ -578,10 +575,7 @@ int main(){
                     scanf("%s", &eingabe);
                     strtoken(eingabe,args,3);
                     if(strcmp(args[0], "CONNECT") == 0){
-                        int lengthundso = sizeof(args[1]);
-                        char ip[lengthundso] = args[1];
-                        int lengthundso2 = sizeof(args[2]);
-                        char port[lengthundso2] = args[2];
+
                         // Wir machen einen Socket:
                         int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
                         client_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -589,8 +583,8 @@ int main(){
                         //Genauere Adresse fuer den Socket
                         struct sockaddr_in serv_ad;
                         serv_ad.sin_family = AF_INET;           //Adress-Familie
-                        serv_ad.sin_port = htons(port);         //Portnummer
-                        serv_ad.sin_addr.s_addr = inet_addr(ip);   //Vlt noch ändern in IP Adresse
+                        serv_ad.sin_port = htons((int)args[2]);         //Portnummer
+                        serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
                         //     Typ              Cast zur Adresse              Länge der Adresse
                         int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
                         //Auffangen von Connection error
@@ -600,9 +594,9 @@ int main(){
                         if(conect_status == 0){
                             printf("Verbindung hat geklappt...\n\n");
                             int runner = 0;
-                            while(connectedClients[runner].isNotEmpty){runner++;}
+                            while(connectedClients[runner].isNotEmpty){runner++;}//TODO var shared memory anlegen - damit nicht endlos
                             connectedClients[runner].isNotEmpty =1;
-                            connectedClients[runner].ipdesclient = ip;
+                            strcpy(connectedClients[runner].ipdesclient , args[1]);
                             // pid equals Process ID Filedesc indicates Process
                             int pid3;
                             // CREATE FORK
@@ -629,42 +623,42 @@ int main(){
                                   //Empfangen von Daten
                                   char server_antwort[256];
                                   recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-                                  char *informationen[2];
-                                  strtoken(server_antwort,informationen,2);
+                                  char *informationen[1024];
+                                  strtoken(server_antwort, informationen,2);
                                   if(informationen[0]=="Temperatur"){
-                                    connectedClients[runner].meineSensorwerte.akTemp = (float) informationen[1];
-                                    if(connectedClients[runner].meineSensorwerte.minTemp>(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.minTemp = (float) informationen[1];
-                                    else if(connectedClients[runner].meineSensorwerte.maxTemp<(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.maxTemp = (float) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.akTemp = atof(informationen[1]);
+                                    if(connectedClients[runner].meineSensorwerte.minTemp>   atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.minTemp = atof(informationen[1]);
+                                    else if(connectedClients[runner].meineSensorwerte.maxTemp< atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.maxTemp = atof(informationen[1]);
 
                                   }
                                   else if(informationen[0]=="Humidity"){
-                                    connectedClients[runner].meineSensorwerte.akHum = (float) informationen[1];
-                                    if(connectedClients[runner].meineSensorwerte.minHum>(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.minHum = (float) informationen[1];
-                                    else if(connectedClients[runner].meineSensorwerte.maxHum<(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.maxHum = (float) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.akHum = atof(informationen[1]);
+                                    if(connectedClients[runner].meineSensorwerte.minHum>atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.minHum = atof(informationen[1]);
+                                    else if(connectedClients[runner].meineSensorwerte.maxHum<atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.maxHum = atof(informationen[1]);
                                   }
                                   else if(informationen[0]=="Sound"){
-                                    connectedClients[runner].meineSensorwerte.akDB = (float) informationen[1];
-                                    if(connectedClients[runner].meineSensorwerte.minDB>(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.minDB = (float) informationen[1];
-                                    else if(connectedClients[runner].meineSensorwerte.maxDB<(float) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.maxDB = (float) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.akDB = atof(informationen[1]);
+                                    if(connectedClients[runner].meineSensorwerte.minDB>atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.minDB = atof(informationen[1]);
+                                    else if(connectedClients[runner].meineSensorwerte.maxDB<atof(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.maxDB = atof(informationen[1]);
                                   }
                                   else if(informationen[0]=="Waterdetected"){
-                                    connectedClients[runner].meineSensorwerte.akWater = (int) informationen[1];
-                                    if(connectedClients[runner].meineSensorwerte.minWater>(int) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.minWater = (int) informationen[1];
-                                    else if(connectedClients[runner].meineSensorwerte.maxWater<(int) informationen[1])
-                                      connectedClients[runner].meineSensorwerte.maxWater = (int) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.akWater =  atoi(informationen[1]);
+                                    if(connectedClients[runner].meineSensorwerte.minWater>atoi(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.minWater = atoi(informationen[1]);
+                                    else if(connectedClients[runner].meineSensorwerte.maxWater<atoi(informationen[1]))
+                                      connectedClients[runner].meineSensorwerte.maxWater = atoi(informationen[1]);
                                   }
                                   else if(informationen[0]=="Motiondetected"){
-                                    connectedClients[runner].meineSensorwerte.motion = (int) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.motion = atoi(informationen[1]);
                                   }
                                   else if(informationen[0]=="Colisiondetected"){
-                                    connectedClients[runner].meineSensorwerte.colision = (int) informationen[1];
+                                    connectedClients[runner].meineSensorwerte.colision = atoi(informationen[1]);
                                   }
                                   else {
                                     //do nothing at all
@@ -682,9 +676,9 @@ int main(){
                 connectedClients[0].meineSensorwerte.akTemp=getTempre(TEMPHUMPORT);
                 connectedClients[0].meineSensorwerte.maxTemp=getTempre(TEMPHUMPORT);
 
-                connectedClients[0].meineSensorwerte.minHum=getHumidity(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.akHum=getHumidity(TEMPHUMPORT);
-                connectedClients[0].meineSensorwerte.maxHum=getHumidity(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.minHum=getFeuchtigkeit(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.akHum=getFeuchtigkeit(TEMPHUMPORT);
+                connectedClients[0].meineSensorwerte.maxHum=getFeuchtigkeit(TEMPHUMPORT);
 
                 connectedClients[0].meineSensorwerte.minDB=getGerausch(SOUNDPORT);
                 connectedClients[0].meineSensorwerte.akDB=getGerausch(SOUNDPORT);
@@ -708,44 +702,45 @@ int main(){
                         /* Fehler */
                         perror("semop");
                     }
+                    printf("neue Werte :>>>>");
                     if(connectedClients[0].meineSensorwerte.akTemp != getTempre(TEMPHUMPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                        struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
                         sprintf(neueNachricht.content,"Temperatur %f\n",getTempre(TEMPHUMPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) LOWPRIO;
                       sprintf(neueLCDNachricht.content,"Temperatur %f\n",getTempre(TEMPHUMPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
-                    if(connectedClients[0].meineSensorwerte.akHum != getHumidity(TEMPHUMPORT)){
+                    if(connectedClients[0].meineSensorwerte.akHum != getFeuchtigkeit(TEMPHUMPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                          struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"Humidity %f\n",getHumidity(TEMPHUMPORT));
+                        sprintf(neueNachricht.content,"Humidity %f\n",getFeuchtigkeit(TEMPHUMPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) LOWPRIO;
-                      sprintf(neueLCDNachricht.content,"Humidity: %f\n",getHumidity(TEMPHUMPORT));
+                      sprintf(neueLCDNachricht.content,"Humidity: %f\n",getFeuchtigkeit(TEMPHUMPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
                     }
                     if(connectedClients[0].meineSensorwerte.akDB != getGerausch(SOUNDPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                          struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
                         sprintf(neueNachricht.content,"Sound: %f\n",getGerausch(SOUNDPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) LOWPRIO;
                       sprintf(neueLCDNachricht.content,"Sound: %f\n",getGerausch(SOUNDPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
@@ -753,13 +748,13 @@ int main(){
                     if(connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                          struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
-                        sprintf(neueNachricht.content,"Waterdetected: %d\n"getWasserkontakt(MOISTUREPORT));
+                        sprintf(neueNachricht.content,"Waterdetected: %d\n",getWasserkontakt(MOISTUREPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) HIGHPRIO;
                       sprintf(neueLCDNachricht.content,"Waterdetected: %d\n",getWasserkontakt(MOISTUREPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
@@ -767,13 +762,13 @@ int main(){
                     if(connectedClients[0].meineSensorwerte.colision != getColision(COLISIONPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                          struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
                         sprintf(neueNachricht.content,"Colisiondetected: %d\n",getColision(COLISIONPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct  message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) LOWPRIO;
                       sprintf(neueLCDNachricht.content,"Colisiondetected: %d\n",getColision(COLISIONPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);
@@ -781,13 +776,13 @@ int main(){
                     if(connectedClients[0].meineSensorwerte.motion != getBewegung(MOTIONPORT)){
                       int i = 0;
                       while(connectedClients[i].isNotEmpty){
-                        message neueNachricht;
+                          struct message neueNachricht;
                         neueNachricht.mstype = sizeof(connectedClients[i]);
                         sprintf(neueNachricht.content,"Motiondetected: %d\n",getBewegung(MOTIONPORT));
                         msgsnd(feeder, &neueNachricht, sizeof(neueNachricht), 0);
                         i++;
                       }
-                      message neueLCDNachricht;
+                        struct message neueLCDNachricht;
                       neueLCDNachricht.mstype = (long) MIDDLEPRIO;
                       sprintf(neueLCDNachricht.content,"Motiondetected: %d\n",getBewegung(MOTIONPORT));
                       msgsnd(lcdfeeder, &neueLCDNachricht, sizeof(neueLCDNachricht), 0);

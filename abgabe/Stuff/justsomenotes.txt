@@ -55,3 +55,14 @@ SHARED MEMORY
    
     // destroy the shared memory
     shmctl(shmid,IPC_RMID,NULL);
+
+
+
+TEMPERATURE
+HUMIDITYURE
+MOISTUREURE
+COLISIONURE
+MOTIONONURE
+SOUNDNONURE
+
+
