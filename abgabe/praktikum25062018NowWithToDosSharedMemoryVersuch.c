@@ -411,7 +411,7 @@ int main(){
                                     while(running) {
                                         // RESERVIERE VARIABLEN
                                         char client_cmd[256];
-                                        char *args[2];
+                                        char *args[1024];
                                         // RECEIVE NICE VIBES
                                         recv(fileDesc, &client_cmd, sizeof(client_cmd), 0);
                                         printf("User: %s\n", client_cmd);
@@ -570,7 +570,7 @@ int main(){
                 // Third Fork: CONNECT BEFEHL UND
                     //TODO  CONNECT BEFEHL & IF SUCESSFUL MAKE A NEW FORK
                     char eingabe[256];
-                    char *args[3];
+                    char *args[1024];
                     printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
                     scanf("%s", &eingabe);
                     strtoken(eingabe,args,3);
