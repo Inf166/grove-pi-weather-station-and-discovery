@@ -2,8 +2,8 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="e7487de5-8aa7-47dd-8723-006ae256b980" name="Raspberry" url="http://192.168.2.28">
-        <fileTransfer host="192.168.2.28" port="22" rootFolder="/home/moxdlab" accessType="SFTP">
+      <webServer id="e7487de5-8aa7-47dd-8723-006ae256b980" name="Raspberry" url="http://192.168.178.92">
+        <fileTransfer host="192.168.178.92" port="22" rootFolder="/home/moxdlab" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
