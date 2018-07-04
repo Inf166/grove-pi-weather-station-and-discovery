@@ -85,3 +85,11 @@
          }
          return (i);
      }
+ int strtokenmitsepjoe(char *str, char *separator, char **token, int size){
+     int i = 0;
+     token[0] = strtok(str, separator);
+     while(token[i++] && i < size){
+         token[i] = strtok(NULL,separator);
+     }
+     return (i);
+ }
