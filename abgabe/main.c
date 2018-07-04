@@ -60,7 +60,7 @@ struct message {
      char connectionEstablished[255];
      struct sensorwerte meineSensorwerte;
    };
-   int nextFreeEntryPlace = 0;
+int nextFreeEntryPlace = 0;
 /* Functions */
   //Sensoren InItIaLiZe
   int getColision(int pport){
@@ -216,10 +216,12 @@ struct message {
     key_t logkey = ftok("logmichan", 65);
     int shat = shmget(logkey, sizeof(connectedClients), IPC_CREAT | 0777);
     *connectedClients = shmat(shat, (void *)0, 0);//kein plan
+
     //CREATE SEMAPHORE
     int semID;
     struct sembuf sema;
     semID = semget(2404, 1, IPC_CREAT | 0666);
+
     // First Fork:
     int pid;  // pid equals Process ID
     // CREATE FORK
@@ -509,7 +511,6 @@ struct message {
                 scanf("%s", &eingabe);
                 strtoken(eingabe, args, 3);
                 if (strcmp(args[0], "CONNECT") == 0) {
-
                     // Wir machen einen Socket:
                     int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
                     client_socket = socket(AF_INET, SOCK_STREAM, 0);

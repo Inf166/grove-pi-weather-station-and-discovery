@@ -1,5 +1,5 @@
  #include <stdio.h>
- #include "../grovepi.h"
+ #include "../../grovepi.h"
  #include <sys/socket.h>
  
   int getColision(int pport){
@@ -10,6 +10,7 @@
     if(digitalRead(port) == 0){
         return 1;
     }
+    return 0;
     }
 
     float getTempre(int pport){
@@ -51,6 +52,7 @@
             if(motion == 1){ //motion detected...
                 return 1;
             }
+        return 0;
     }
 
     int getWasserkontakt(int pport){
@@ -64,3 +66,22 @@
         //else
             return value;
     }
+     void setLCDTextmitRGB(const char *str, int a){
+         switch(a) {
+             case 1: setRGB(255, 0, 0);break;
+             case 2: setRGB(255, 255, 0);break;
+             case 3: setRGB(0, 255, 0);break;
+             default: setRGB(255, 255, 255);break;
+         }
+         setText(str);
+     }
+
+     int strtoken(char *str, char **token, int size){
+         int i = 0;
+         char separator[] = " ";
+         token[0] = strtok(str, separator);
+         while(token[i++] && i < size){
+             token[i] = strtok(NULL,separator);
+         }
+         return (i);
+     }
