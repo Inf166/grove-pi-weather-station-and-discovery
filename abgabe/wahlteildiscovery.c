@@ -4,7 +4,9 @@
 #include "./functions/structs.c"
 #include <arpa/inet.h>
 #include <errno.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,10 +30,43 @@
 #define HIGHPRIO 1
 #define MIDDLEPRIO 2
 #define LOWPRIO 3
+#define BUFSIZE 1024
 /* Global Variablen */
 int nextFreeEntryPlace = 0;
+int  fileDesc;
+
+/* Zombies */
+void sig_handler(int signo)
+{
+    close(fileDesc);
+
+    raise (SIGKILL);
+}
+/* Wahlteil */
+static void broadcast(const char *nachricht)
+{
+    struct sockaddr_in bc;
+//     memset(&bc, '\0', sizeof(struct sockaddr_in));
+    bc.sin_family = AF_INET;
+    bc.sin_port = htons(4567);
+    bc.sin_addr.s_addr = inet_addr("192.168.2.255");
+
+    int bc_socket;
+    bc_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    int broadcastPermission = 1;
+    if (setsockopt(bc_socket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission,
+                   sizeof(broadcastPermission)) < 0)
+        printf("setsockopt() failed\n");
+
+
+    printf("Lade Freunde via Broadcast ein\n");
+    if(sendto(bc_socket, nachricht, strlen(nachricht), 0, (struct sockaddr *)&bc, sizeof(struct sockaddr_in)) < 0)
+        perror("sendto");
+}
 /* Main */
 int main() {
+    if (signal(SIGINT, sig_handler) == SIG_ERR)
+        printf("\ncan't catch SIGUSR1\n");
     //TODO Sensors n Stuff
         init();
         connectLCD();
@@ -108,6 +143,10 @@ int main() {
             struct sembuf sema;
             semID = semget(2404, 1, IPC_CREAT | 0666);
             int counter = 0;
+    //TODO WAHLTEILDISCOVERY
+    char nachricht[256];
+    snprintf(nachricht, sizeof(nachricht), "192.168.2.28 5678");
+    broadcast(nachricht);
     //TODO Forks and Stuff
     int pid1;
     if((pid1 = fork()) < 0)//ERROR
@@ -123,7 +162,7 @@ int main() {
         }
         if(pid2 > 0)//PARENT PROCESS - Mainflow Server
         {
-            int pid4, fileDesc;
+            int pid4;
             while (1) {
                 // Verbindung wird Serverseitig angenommen
                 fileDesc = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
@@ -308,191 +347,431 @@ int main() {
                 printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
                 scanf("%s", &eingabe);
                 strtoken(eingabe, args, 3);
-                if (strcmp(args[0], "CONNECT") == 0) {
-                    // Wir machen einen Socket:
-                    int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
-                    client_socket = socket(AF_INET, SOCK_STREAM, 0);
-                    printf("Lege neuen Socket für andere Server an\n");
-                    //Genauere Adresse fuer den Socket
-                    struct sockaddr_in serv_ad;
-                    serv_ad.sin_family = AF_INET;           //Adress-Familie
-                    serv_ad.sin_port = htons((int) args[2]);         //Portnummer
-                    serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
-                    //     Typ              Cast zur Adresse              Länge der Adresse
-                    int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
-                    //Auffangen von Connection error
-                    if (conect_status == -1) {
-                        printf("Verbindung fehlgeschlagen...\n\n");
-                    }
-                    if (conect_status == 0) {
-                        printf("Verbindung hat geklappt...\n\n");
-                        meineclients.connectedClients[nextFreeEntryPlace].isNotEmpty = 1;
-                        snprintf(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient,
-                                 sizeof(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient),
-                                 (char *) inet_ntoa(client_addr.sin_addr));
-                        time_t now;
-                        now = time(0);
-                        snprintf(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished,
-                                 sizeof(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished), ctime(&now));
-                        cougar = nextFreeEntryPlace;
-                        nextFreeEntryPlace++;
-                        int pid3;
-                        if ((pid3 = fork()) < 0)//ERROR
-                        {
-                            perror("Error: Fork Error - please restart the Programm\n");// Throw Error
+                int pid8;
+                if((pid8 = fork()) < 0)//ERROR
+                {
+                    perror("Error: Fork Error - please restart the Programm\n");// Throw Error
+                }
+                if(pid8 > 0)//PARENT PROCESS - Mainflow Server
+                {
+                    if (strcmp(args[0], "CONNECT") == 0) {
+                        // Wir machen einen Socket:
+                        int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
+                        client_socket = socket(AF_INET, SOCK_STREAM, 0);
+                        printf("Lege neuen Socket für andere Server an\n");
+                        //Genauere Adresse fuer den Socket
+                        struct sockaddr_in serv_ad;
+                        serv_ad.sin_family = AF_INET;           //Adress-Familie
+                        printf("%s\n", args[2]);
+                        serv_ad.sin_port = htons((int) atof(args[2]));         //Portnummer
+                        printf("%s\n", args[1]);
+                        serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
+                        //     Typ              Cast zur Adresse              Länge der Adresse
+                        int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
+                        //Auffangen von Connection error
+                        if (conect_status == -1) {
+                            printf("Verbindung fehlgeschlagen...\n\n");
                         }
-                        if (pid3 > 0)//PARENT PROCESS - Mainflow von Client
-                        {
-                            while (1) {
-                                if (semID >= 0) {
-                                    /* Bereite die Semaphore vor und starte */
-                                    sema.sem_num = 0;
-                                    sema.sem_flg = SEM_UNDO;
-                                    sema.sem_op = -1;
-                                    if (-1 == semop(semID, &sema, 1)) {
-                                        /* Fehler */
-                                        perror("semop");
-                                    }
-                                    /* Code ab hier */
-                                    int tag = 1;
-                                    struct message nachricht;
-                                    while (tag > 0) {
-                                        tag = msgrcv(feeder, &nachricht, sizeof(&nachricht),
-                                                     sizeof(meineclients.connectedClients[cougar]), 0);
-                                        if (tag < 0) {
-                                            perror(strerror(errno));
-                                            printf("msgrcv failed, rc=%d\n", tag);
-                                            exit(1);
+                        if (conect_status == 0) {
+                            printf("Verbindung hat geklappt...\n\n");
+                            meineclients.connectedClients[nextFreeEntryPlace].isNotEmpty = 1;
+                            snprintf(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient,
+                                     sizeof(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient),
+                                     (char *) inet_ntoa(client_addr.sin_addr));
+                            time_t now;
+                            now = time(0);
+                            snprintf(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished,
+                                     sizeof(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished), ctime(&now));
+                            cougar = nextFreeEntryPlace;
+                            nextFreeEntryPlace++;
+                            int pid3;
+                            if ((pid3 = fork()) < 0)//ERROR
+                            {
+                                perror("Error: Fork Error - please restart the Programm\n");// Throw Error
+                            }
+                            if (pid3 > 0)//PARENT PROCESS - Mainflow von Client
+                            {
+                                while (1) {
+                                    if (semID >= 0) {
+                                        /* Bereite die Semaphore vor und starte */
+                                        sema.sem_num = 0;
+                                        sema.sem_flg = SEM_UNDO;
+                                        sema.sem_op = -1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
                                         }
-                                        printf("%s\n", nachricht.content);
-                                        send(client_socket, nachricht.content, strlen(nachricht.content), 0);
+                                        /* Code ab hier */
+                                        int tag = 1;
+                                        struct message nachricht;
+                                        while (tag > 0) {
+                                            tag = msgrcv(feeder, &nachricht, sizeof(&nachricht),
+                                                         sizeof(meineclients.connectedClients[cougar]), 0);
+                                            if (tag < 0) {
+                                                perror(strerror(errno));
+                                                printf("msgrcv failed, rc=%d\n", tag);
+                                                exit(1);
+                                            }
+                                            printf("%s\n", nachricht.content);
+                                            send(client_socket, nachricht.content, strlen(nachricht.content), 0);
+                                        }
+                                        /* Code bis hier */
+                                        sema.sem_op = 1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                    } else {
+                                        perror("semget");
                                     }
-                                    /* Code bis hier */
-                                    sema.sem_op = 1;
-                                    if (-1 == semop(semID, &sema, 1)) {
-                                        /* Fehler */
-                                        perror("semop");
+                                }
+                            }
+                            if (pid3 == 0)//CHILD PROCESS - Sideflow von Client
+                            {
+                                while (1) {
+                                    if (semID >= 0) {
+                                        /* Bereite die Semaphore vor und starte */
+                                        sema.sem_num = 0;
+                                        sema.sem_flg = SEM_UNDO;
+                                        sema.sem_op = -1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                        /* Code ab hier */
+                                        char buff[256];
+                                        snprintf(buff, sizeof buff, "GET TEMPERATURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+                                        char server_antwort[256];
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+                                        char *informationen[1024];
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Temperatur") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akTemp = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minTemp >
+                                                atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minTemp = atof(
+                                                        informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxTemp <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxTemp = atof(
+                                                        informationen[1]);
+
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET HUMIDITYURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Humidity") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akHum = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minHum > atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minHum = atof(informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxHum <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxHum = atof(informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET SOUNDNONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Sound") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akDB = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minDB > atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minDB = atof(informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxDB <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxDB = atof(informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET MOISTUREURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Moisture") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akWater = atoi(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minWater >
+                                                atoi(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minWater = atoi(
+                                                        informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxWater <
+                                                     atoi(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxWater = atoi(
+                                                        informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET MOTIONONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Motiondetected") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.motion = 1;
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET COLISIONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Colisiondetected") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.colision = atoi(informationen[1]);
+                                        }
+                                        /* Code bis hier */
+                                        sema.sem_op = 1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                        pi_sleep(10000);
+                                    } else {
+                                        perror("semget");
                                     }
-                                } else {
-                                    perror("semget");
                                 }
                             }
                         }
-                        if (pid3 == 0)//CHILD PROCESS - Sideflow von Client
-                        {
-                            while (1) {
-                                if (semID >= 0) {
-                                    /* Bereite die Semaphore vor und starte */
-                                    sema.sem_num = 0;
-                                    sema.sem_flg = SEM_UNDO;
-                                    sema.sem_op = -1;
-                                    if (-1 == semop(semID, &sema, 1)) {
-                                        /* Fehler */
-                                        perror("semop");
+                    }
+                }
+                if(pid8 == 0)//CHILD PROCESS - Typ1
+                {
+                    printf("Lausche nach anderen Clients\n");
+                    int sockfd;		/* socket */
+                    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+                    if (sockfd < 0)
+                        perror("ERROR opening socket");
+                    int portno = 4567;		/* port to listen on */
+                    int clientlen;		/* byte size of client's address */
+                    struct sockaddr_in serveraddr;	/* server's addr */
+                    struct sockaddr_in clientaddr;	/* client addr */
+                    struct hostent *hostp;	/* client host info */
+                    char *buf;		/* message buf */
+                    char *hostaddrp;	/* dotted decimal host addr string */
+                    int optval;		/* flag value for setsockopt */
+                    optval = 1;
+                    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+                               (const void *)&optval, sizeof(int));
+                    int n;			/* message byte size */
+//                    zero((char *)&serveraddr, sizeof(serveraddr));
+                    serveraddr.sin_family = AF_INET;
+                    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+                    serveraddr.sin_port = htons((unsigned short)portno);
+                    if (bind(sockfd, (struct sockaddr *)&serveraddr,
+                             sizeof(serveraddr)) < 0)
+                        perror("ERROR on binding");
+                    clientlen = sizeof(clientaddr);
+                    while (1) {
+
+                        /*
+                         * recvfrom: receive a UDP datagram from a client
+                         */
+                        buf = malloc(BUFSIZE);
+                        n = recvfrom(sockfd, buf, BUFSIZE, 0,
+                                     (struct sockaddr *)&clientaddr, &clientlen);
+                        if (n < 0)
+                            perror("ERROR in recvfrom");
+                        printf("%s\n",buf);
+                        char *args[1024];
+                        strtoken(buf, args, 2);
+                        // Wir machen einen Socket:
+                        int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
+                        client_socket = socket(AF_INET, SOCK_STREAM, 0);
+                        printf("Lege neuen Socket für andere Server an\n");
+                        //Genauere Adresse fuer den Socket
+                        struct sockaddr_in serv_ad;
+                        serv_ad.sin_family = AF_INET;           //Adress-Familie
+                        serv_ad.sin_port = htons((int) atof(args[1]));         //Portnummer
+                        serv_ad.sin_addr.s_addr = inet_addr(args[0]);   //Vlt noch ändern in IP Adresse
+                        //     Typ              Cast zur Adresse              Länge der Adresse
+                        int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
+                        //Auffangen von Connection error
+                        if (conect_status == -1) {
+                            printf("Verbindung fehlgeschlagen...\n\n");
+                        }
+                        if (conect_status == 0) {
+                            printf("Verbindung hat geklappt...\n\n");
+                            meineclients.connectedClients[nextFreeEntryPlace].isNotEmpty = 1;
+                            snprintf(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient,
+                                     sizeof(meineclients.connectedClients[nextFreeEntryPlace].ipdesclient),
+                                     (char *) inet_ntoa(client_addr.sin_addr));
+                            time_t now;
+                            now = time(0);
+                            snprintf(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished,
+                                     sizeof(meineclients.connectedClients[nextFreeEntryPlace].connectionEstablished), ctime(&now));
+                            cougar = nextFreeEntryPlace;
+                            nextFreeEntryPlace++;
+                            int pid3;
+                            if ((pid3 = fork()) < 0)//ERROR
+                            {
+                                perror("Error: Fork Error - please restart the Programm\n");// Throw Error
+                            }
+                            if (pid3 > 0)//PARENT PROCESS - Mainflow von Client
+                            {
+                                while (1) {
+                                    if (semID >= 0) {
+                                        /* Bereite die Semaphore vor und starte */
+                                        sema.sem_num = 0;
+                                        sema.sem_flg = SEM_UNDO;
+                                        sema.sem_op = -1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                        /* Code ab hier */
+                                        int tag = 1;
+                                        struct message nachricht;
+                                        while (tag > 0) {
+                                            tag = msgrcv(feeder, &nachricht, sizeof(&nachricht),
+                                                         sizeof(meineclients.connectedClients[cougar]), 0);
+                                            if (tag < 0) {
+                                                perror(strerror(errno));
+                                                printf("msgrcv failed, rc=%d\n", tag);
+                                                exit(1);
+                                            }
+                                            printf("%s\n", nachricht.content);
+                                            send(client_socket, nachricht.content, strlen(nachricht.content), 0);
+                                        }
+                                        /* Code bis hier */
+                                        sema.sem_op = 1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                    } else {
+                                        perror("semget");
                                     }
-                                    /* Code ab hier */
-                                    char buff[256];
-                                    snprintf(buff, sizeof buff, "GET TEMPERATURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-                                    char server_antwort[256];
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-                                    char *informationen[1024];
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Temperatur") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.akTemp = atof(informationen[1]);
-                                        if (meineclients.connectedClients[cougar].meineSensorwerte.minTemp >
-                                            atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.minTemp = atof(
-                                                    informationen[1]);
-                                        else if (meineclients.connectedClients[cougar].meineSensorwerte.maxTemp <
-                                                 atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.maxTemp = atof(
-                                                    informationen[1]);
+                                }
+                            }
+                            if (pid3 == 0)//CHILD PROCESS - Sideflow von Client
+                            {
+                                while (1) {
+                                    if (semID >= 0) {
+                                        /* Bereite die Semaphore vor und starte */
+                                        sema.sem_num = 0;
+                                        sema.sem_flg = SEM_UNDO;
+                                        sema.sem_op = -1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                        /* Code ab hier */
+                                        char buff[256];
+                                        snprintf(buff, sizeof buff, "GET TEMPERATURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+                                        char server_antwort[256];
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+                                        char *informationen[1024];
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Temperatur") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akTemp = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minTemp >
+                                                atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minTemp = atof(
+                                                        informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxTemp <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxTemp = atof(
+                                                        informationen[1]);
 
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET HUMIDITYURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Humidity") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akHum = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minHum > atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minHum = atof(informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxHum <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxHum = atof(informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET SOUNDNONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Sound") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akDB = atof(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minDB > atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minDB = atof(informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxDB <
+                                                     atof(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxDB = atof(informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET MOISTUREURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Moisture") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.akWater = atoi(informationen[1]);
+                                            if (meineclients.connectedClients[cougar].meineSensorwerte.minWater >
+                                                atoi(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.minWater = atoi(
+                                                        informationen[1]);
+                                            else if (meineclients.connectedClients[cougar].meineSensorwerte.maxWater <
+                                                     atoi(informationen[1]))
+                                                meineclients.connectedClients[cougar].meineSensorwerte.maxWater = atoi(
+                                                        informationen[1]);
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET MOTIONONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Motiondetected") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.motion = 1;
+                                        }
+
+                                        snprintf(buff, sizeof buff, "GET COLISIONURE \n");
+                                        send(client_socket, buff, strlen(buff), 0);
+                                        //Empfangen von Daten
+
+                                        recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
+
+                                        strtoken(server_antwort, informationen, 2);
+                                        if (informationen[0] == "Colisiondetected") {
+                                            meineclients.connectedClients[cougar].meineSensorwerte.colision = atoi(informationen[1]);
+                                        }
+                                        /* Code bis hier */
+                                        sema.sem_op = 1;
+                                        if (-1 == semop(semID, &sema, 1)) {
+                                            /* Fehler */
+                                            perror("semop");
+                                        }
+                                        pi_sleep(10000);
+                                    } else {
+                                        perror("semget");
                                     }
-
-                                    snprintf(buff, sizeof buff, "GET HUMIDITYURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Humidity") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.akHum = atof(informationen[1]);
-                                        if (meineclients.connectedClients[cougar].meineSensorwerte.minHum > atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.minHum = atof(informationen[1]);
-                                        else if (meineclients.connectedClients[cougar].meineSensorwerte.maxHum <
-                                                 atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.maxHum = atof(informationen[1]);
-                                    }
-
-                                    snprintf(buff, sizeof buff, "GET SOUNDNONURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Sound") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.akDB = atof(informationen[1]);
-                                        if (meineclients.connectedClients[cougar].meineSensorwerte.minDB > atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.minDB = atof(informationen[1]);
-                                        else if (meineclients.connectedClients[cougar].meineSensorwerte.maxDB <
-                                                 atof(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.maxDB = atof(informationen[1]);
-                                    }
-
-                                    snprintf(buff, sizeof buff, "GET MOISTUREURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Moisture") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.akWater = atoi(informationen[1]);
-                                        if (meineclients.connectedClients[cougar].meineSensorwerte.minWater >
-                                            atoi(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.minWater = atoi(
-                                                    informationen[1]);
-                                        else if (meineclients.connectedClients[cougar].meineSensorwerte.maxWater <
-                                                 atoi(informationen[1]))
-                                            meineclients.connectedClients[cougar].meineSensorwerte.maxWater = atoi(
-                                                    informationen[1]);
-                                    }
-
-                                    snprintf(buff, sizeof buff, "GET MOTIONONURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Motiondetected") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.motion = 1;
-                                    }
-
-                                    snprintf(buff, sizeof buff, "GET COLISIONURE \n");
-                                    send(client_socket, buff, strlen(buff), 0);
-                                    //Empfangen von Daten
-
-                                    recv(client_socket, &server_antwort, sizeof(server_antwort), 0);
-
-                                    strtoken(server_antwort, informationen, 2);
-                                    if (informationen[0] == "Colisiondetected") {
-                                        meineclients.connectedClients[cougar].meineSensorwerte.colision = atoi(informationen[1]);
-                                    }
-                                    /* Code bis hier */
-                                    sema.sem_op = 1;
-                                    if (-1 == semop(semID, &sema, 1)) {
-                                        /* Fehler */
-                                        perror("semop");
-                                    }
-                                    pi_sleep(10000);
-                                } else {
-                                    perror("semget");
                                 }
                             }
                         }

@@ -341,11 +341,10 @@ int main() {
                     struct sockaddr_in serv_ad;
                     serv_ad.sin_family = AF_INET;           //Adress-Familie
                     printf("Port wird erstellt\n");
-                    serv_ad.sin_port = htons((int) atof(args[2]));         //Portnummer
+                    serv_ad.sin_port = htons(atoi(args[2]));         //Portnummer
                     printf("Port erstellt\n");
                     printf("IP wird erstellt\n");// TODO Genaueres macht bobby dann
                     struct hostent *host_info;
-
                     host_info = gethostbyname(args[1]); /*löst Name in IP auf*/
                     serv_ad.sin_addr.s_addr = host_info;   //Vlt noch ändern in IP Adresse
                     printf("IP erstellt\n");
