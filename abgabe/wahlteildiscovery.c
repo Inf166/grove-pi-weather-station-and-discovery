@@ -39,7 +39,6 @@ int  fileDesc;
 void sig_handler(int signo)
 {
     close(fileDesc);
-
     raise (SIGKILL);
 }
 /* Wahlteil */
