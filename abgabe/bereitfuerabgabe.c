@@ -99,6 +99,9 @@ int main() {
             now = time(0);
             snprintf(meineclients.connectedClients[0].connectionEstablished, sizeof(meineclients.connectedClients[0].connectionEstablished),ctime(&now));
             nextFreeEntryPlace++;
+            for(int l = 1; l < 35; l++){
+                meineclients.connectedClients[l].isNotEmpty = 0;
+            }
             key_t logkey = ftok("logmichan", 65);
             int shat = shmget(logkey, sizeof(meineclients.connectedClients), IPC_CREAT | 0777);
             p_meineclients = shmat(shat, (void *)0, 0);//kein plan
@@ -206,49 +209,7 @@ int main() {
                                 printf("VERBINDUNG GESCHLOSSEN");
                                 break;
                                 // THROW ERROR IF FIRST WORD IS UNKNOWN
-                            } else if (strcmp(args[0], "PEERS") == 0) {
-                                int i = 1;
-                                while (meineclients.connectedClients[i].isNotEmpty) {
-                                    printf("<%s> [Connect since: %s]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].connectionEstablished);
-
-                                    printf("<%s> [Min-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.minTemp);
-                                    printf("<%s> [ak-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.akTemp);
-                                    printf("<%s> [Max-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.maxTemp);
-
-                                    printf("<%s> [Min-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.minHum);
-                                    printf("<%s> [ak-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.akHum);
-                                    printf("<%s> [Max-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.maxHum);
-
-                                    printf("<%s> [Min-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.minDB);
-                                    printf("<%s> [ak-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.akDB);
-                                    printf("<%s> [Max-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.maxDB);
-
-                                    printf("<%s> [Min-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.minWater);
-                                    printf("<%s> [ak-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.akWater);
-                                    printf("<%s> [Max-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.maxWater);
-
-                                    printf("<%s> [Motiondetected: %d]\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.motion);
-                                    printf("<%s> [Colisiondetected: %d]\n\n", meineclients.connectedClients[i].ipdesclient,
-                                           meineclients.connectedClients[i].meineSensorwerte.colision);
-                                    i++;
-                                }
-                                continue;
-                                // THROW ERROR IF FIRST WORD IS UNKNOWN
-                            } else {
+                            }  else {
                                 char errorlol[40] = {0};
                                 sprintf(errorlol, "Fehlerhafte Eingabe.\n");
                                 send(fileDesc, errorlol, strlen(errorlol), 0);
@@ -305,7 +266,11 @@ int main() {
             while (1) {
                 char eingabe[256];
                 char *args[1024];
-                printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
+                printf("<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>\n");
+                printf("<   Mögliche Eingaben:          > \n");
+                printf("<   CONNECT xxx.xxx.x.xx xxxx   >\n");
+                printf("<   PEERS                       >\n");
+                printf("<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>\n");
                 scanf("%s", &eingabe);
                 strtoken(eingabe, args, 3);
                 if (strcmp(args[0], "CONNECT") == 0) {
@@ -317,7 +282,8 @@ int main() {
                     struct sockaddr_in serv_ad;
                     serv_ad.sin_family = AF_INET;           //Adress-Familie
                     serv_ad.sin_port = htons((int) args[2]);         //Portnummer
-                    serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
+                    char* buffer = args[1];
+                    serv_ad.sin_addr.s_addr = inet_addr(buffer);   //Vlt noch ändern in IP Adresse
                     //     Typ              Cast zur Adresse              Länge der Adresse
                     int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
                     //Auffangen von Connection error
@@ -496,6 +462,47 @@ int main() {
                                 }
                             }
                         }
+                    }
+                }else if (strcmp(args[0], "PEERS") == 0) {
+                    int i = 0;
+                    printf("Meine Peers: \n");
+                    while(meineclients.connectedClients[i].isNotEmpty){
+                        printf("<%s> [Connect since: %s]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].connectionEstablished);
+
+                        printf("<%s> [Min-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.minTemp);
+                        printf("<%s> [ak-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.akTemp);
+                        printf("<%s> [Max-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.maxTemp);
+
+                        printf("<%s> [Min-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.minHum);
+                        printf("<%s> [ak-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.akHum);
+                        printf("<%s> [Max-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.maxHum);
+
+                        printf("<%s> [Min-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.minDB);
+                        printf("<%s> [ak-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.akDB);
+                        printf("<%s> [Max-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.maxDB);
+
+                        printf("<%s> [Min-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.minWater);
+                        printf("<%s> [ak-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.akWater);
+                        printf("<%s> [Max-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.maxWater);
+
+                        printf("<%s> [Motiondetected: %d]\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.motion);
+                        printf("<%s> [Colisiondetected: %d]\n\n", meineclients.connectedClients[i].ipdesclient,
+                               meineclients.connectedClients[i].meineSensorwerte.colision);
+                        i++;
                     }
                 }
             }

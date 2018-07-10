@@ -43,7 +43,7 @@ void sig_handler(int signo)
     raise (SIGKILL);
 }
 /* Wahlteil */
-static void broadcast(const char *nachricht)
+static void broadcast(const char *nachricht)//TODO WAHLTEILDISCOVERY
 {
     struct sockaddr_in bc;
 //     memset(&bc, '\0', sizeof(struct sockaddr_in));
@@ -62,6 +62,7 @@ static void broadcast(const char *nachricht)
     printf("Lade Freunde via Broadcast ein\n");
     if(sendto(bc_socket, nachricht, strlen(nachricht), 0, (struct sockaddr *)&bc, sizeof(struct sockaddr_in)) < 0)
         perror("sendto");
+    printf("Nachricht versandt.\n");
 }
 /* Main */
 int main() {
@@ -345,7 +346,7 @@ int main() {
                 char eingabe[256];
                 char *args[1024];
                 printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
-                scanf("%s", &eingabe);
+//                scanf("%s", &eingabe);
                 strtoken(eingabe, args, 3);
                 int pid8;
                 if((pid8 = fork()) < 0)//ERROR
@@ -548,7 +549,7 @@ int main() {
                     }
                 }
                 if(pid8 == 0)//CHILD PROCESS - Typ1
-                {
+                {//TODO WAHLTEILDISCOVERY
                     printf("Lausche nach anderen Clients\n");
                     int sockfd;		/* socket */
                     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -569,7 +570,7 @@ int main() {
 //                    zero((char *)&serveraddr, sizeof(serveraddr));
                     serveraddr.sin_family = AF_INET;
                     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                    serveraddr.sin_port = htons((unsigned short)portno);
+                    serveraddr.sin_port = htons(4567);
                     if (bind(sockfd, (struct sockaddr *)&serveraddr,
                              sizeof(serveraddr)) < 0)
                         perror("ERROR on binding");

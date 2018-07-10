@@ -229,6 +229,7 @@ int main() {
                                     // THROW ERROR IF FIRST WORD IS UNKNOWN
                                 } else if (strcmp(args[0], "PEERS") == 0) {
                                     int i = 1;
+                                    printf("Meine PEERS: \n");
                                     while (meineclients.connectedClients[i].isNotEmpty) {
                                         printf("<%s> [Connect since: %s]\n",
                                                meineclients.connectedClients[i].ipdesclient,
@@ -343,10 +344,8 @@ int main() {
                     printf("Port wird erstellt\n");
                     serv_ad.sin_port = htons(atoi(args[2]));         //Portnummer
                     printf("Port erstellt\n");
-                    printf("IP wird erstellt\n");// TODO Genaueres macht bobby dann
-                    struct hostent *host_info;
-                    host_info = gethostbyname(args[1]); /*löst Name in IP auf*/
-                    serv_ad.sin_addr.s_addr = host_info;   //Vlt noch ändern in IP Adresse
+                    printf("IP wird erstellt\n");
+                    serv_ad.sin_addr.s_addr = inet_addr(args[1]);   //Vlt noch ändern in IP Adresse
                     printf("IP erstellt\n");
                     //     Typ              Cast zur Adresse              Länge der Adresse
                     int conect_status = connect(client_socket, (struct sockaddr *) &serv_ad, sizeof(serv_ad));
