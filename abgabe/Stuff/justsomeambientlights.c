@@ -13,7 +13,8 @@
 #include <netinet/in.h>
 #include <errno.h>
 
-#include "../grovepi.h" //Muss für Raspberry-Funktionen aktiv sein
+#include "../../grovepi.h" //Muss für Raspberry-Funktionen aktiv sein
+#include "../functions/sensors.c"
 #include <time.h>
 #include <stdlib.h>
 
@@ -26,11 +27,18 @@ int main(){
     // Raspberry Sensoren working
     init();
     connectLCD();
-    while(1) {
-        srand(time(NULL));   // should only be called once
-        int r = rand();
-        int b = rand();
-        int c = rand();
-        setRGB(r, b, c);
+    int color1, color2, color3;
+    color1 = 10;
+    color2 = 220;
+    color3 = 1;
+    for (int j = 0; j < 255; ++j) {
+        color1 += 1;
+        color2 -= 2;
+        color3 += 3;
+        setRGB(color1, color2, color3);
+        pi_sleep(5);
     }
+
+    setText("");
+
 }

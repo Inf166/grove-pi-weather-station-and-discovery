@@ -1,7 +1,7 @@
 /* Include Libaries */
-#include "../grovepi.h"
-#include "./functions/sensors.c"
-#include "./functions/structs.c"
+#include "../../grovepi.h"
+#include "../functions/sensors.c"
+#include "../functions/structs.c"
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>

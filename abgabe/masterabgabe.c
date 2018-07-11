@@ -330,7 +330,7 @@ int main() {
                                             snprintf(buf, sizeof buf, "Moisture %d\n", getWasserkontakt(MOISTUREPORT));
                                             send(fileDesc, buf, strlen(buf), 0);
                                         }
-                                            //TODO WAHLTEIL Überwachung
+                                        //TODO WAHLTEIL Überwachung
                                         else if(strcmp(args[0], "ECHO") == 0) {
                                             snprintf(buf, sizeof buf, "REPLY \n");
                                             send(fileDesc, buf, strlen(buf), 0);
@@ -416,6 +416,9 @@ int main() {
                         printf("<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>\n\n\n");
                         scanf("%s", &eingabe);
                         strtoken(eingabe, args, 3);
+//                        validIP(args[1])? printf("Valid IP Adress\n"): printf("Not valid IP Adress\n");
+//                            printf("%s",args[1]);
+//                            printf("%s",args[2]);
                         if (strcmp(args[0], "CONNECT") == 0) {
                             // Wir machen einen Socket:
                             int client_socket; // ADRESSE ODER PROTOKOLLFAMILE / SOCKET TYP / PROTOKOLL (TCP)
@@ -541,7 +544,6 @@ int main() {
                                                                     informationen[1]);
 
                                                     }
-
                                                     snprintf(buff, sizeof buff, "GET HUMIDITYURE \n");
                                                     send(client_socket, buff, strlen(buff), 0);
                                                     //Empfangen von Daten
@@ -654,25 +656,25 @@ int main() {
                                 printf("<%s> [Connect since: %s]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].connectionEstablished);
 
-                                printf("<%s> [Min-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minTemp);
-                                printf("<%s> [ak-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akTemp);
-                                printf("<%s> [Max-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxTemp);
 
-                                printf("<%s> [Min-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minHum);
-                                printf("<%s> [ak-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akHum);
-                                printf("<%s> [Max-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxHum);
 
-                                printf("<%s> [Min-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minDB);
-                                printf("<%s> [ak-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akDB);
-                                printf("<%s> [Max-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxDB);
 
                                 printf("<%s> [Min-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
@@ -688,7 +690,7 @@ int main() {
                                        meineclients.connectedClients[i].meineSensorwerte.colision);
                                 i++;
                             }
-                        }
+                        } else {printf("Fehlerhafte Eingabe\n\n");}
                     }
                         if(pid8 == 0)//CHILD PROCESS - Typ1
                         {//TODO WAHLTEIL DISCOVERY
@@ -938,7 +940,6 @@ int main() {
                     perror("semop");
                 }
                 /* Code ab hier */
-                setLCDTextmitRGB("LOLIBärchen", HIGHPRIO);pi_sleep(5000);
                 if (meineclients.connectedClients[0].meineSensorwerte.akWater != getWasserkontakt(MOISTUREPORT)) {
                     int i = 0;
                     while (meineclients.connectedClients[i].isNotEmpty) {

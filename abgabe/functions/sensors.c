@@ -1,7 +1,8 @@
  #include <stdio.h>
  #include "../../grovepi.h"
  #include <sys/socket.h>
- 
+
+#define DELIM "."
   int getColision(int pport){
     int port = pport;
     //if(init()==-1)
@@ -81,7 +82,7 @@
          char separator[] = " ";
          token[0] = strtok(str, separator);
          while(token[i++] && i < size){
-             token[i] = strtok(NULL,separator);
+             token[i] = strtok(NULL, separator);
          }
          return (i);
      }
@@ -93,3 +94,40 @@
      }
      return (i);
  }
+
+ //Quelle GeeksforGeeks viel anders kann man das ja nich machen
+ int valid_digit(char *ip_str)
+ {
+     while (*ip_str) {
+         if (*ip_str >= '0' && *ip_str <= '9')
+             ++ip_str;
+         else
+             return 0;
+     }
+     return 1;
+ }
+ int validIP(char *ip_str)
+ {
+     int i, num, dots = 0;
+     char *ptr;
+     if (ip_str == NULL)
+         return 0;
+     ptr = strtok(ip_str, DELIM);
+     if (ptr == NULL)
+         return 0;
+     while (ptr) {
+         if (!valid_digit(ptr))
+             return 0;
+         num = atoi(ptr);
+         if (num >= 0 && num <= 255) {
+             ptr = strtok(NULL, DELIM);
+             if (ptr != NULL)
+                 ++dots;
+         } else
+             return 0;
+     }
+     if (dots != 3)
+         return 0;
+     return 1;
+ }
+

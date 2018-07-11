@@ -662,25 +662,25 @@ int main() {
                                 printf("<%s> [Connect since: %s]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].connectionEstablished);
 
-                                printf("<%s> [Min-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minTemp);
-                                printf("<%s> [ak-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akTemp);
-                                printf("<%s> [Max-Temp: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-Temp: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxTemp);
 
-                                printf("<%s> [Min-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minHum);
-                                printf("<%s> [ak-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akHum);
-                                printf("<%s> [Max-Hum: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-Hum: %.2f]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxHum);
 
-                                printf("<%s> [Min-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Min-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.minDB);
-                                printf("<%s> [ak-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [ak-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.akDB);
-                                printf("<%s> [Max-DB: %f]\n", meineclients.connectedClients[i].ipdesclient,
+                                printf("<%s> [Max-DB: %d]\n", meineclients.connectedClients[i].ipdesclient,
                                        meineclients.connectedClients[i].meineSensorwerte.maxDB);
 
                                 printf("<%s> [Min-Water: %d]\n", meineclients.connectedClients[i].ipdesclient,
