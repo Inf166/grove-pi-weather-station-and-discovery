@@ -27,7 +27,7 @@
 #define SOUNDPORT 7
 #define LCDPORT 5
 #define MOTIONPORT 3
-#define COLISIONPORT 0
+#define COLISIONPORT 5
 #define TEMPHUMPORT 2
 #define HIGHPRIO 1
 #define MIDDLEPRIO 2
