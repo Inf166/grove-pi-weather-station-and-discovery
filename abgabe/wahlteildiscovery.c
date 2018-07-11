@@ -345,7 +345,7 @@ int main() {
                 char eingabe[256];
                 char *args[1024];
                 printf("Bitte EINGABE: CONNECT XXX.XXX.XXX.XXX XXXX\n");
-//                scanf("%s", &eingabe);
+                scanf("%s", &eingabe);
                 strtoken(eingabe, args, 3);
                 int pid8;
                 if((pid8 = fork()) < 0)//ERROR
